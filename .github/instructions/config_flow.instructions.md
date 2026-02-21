@@ -42,16 +42,13 @@ Understanding the relationship between these components is essential:
 **Where Data Entry Flow is actually used:**
 
 1. **Config Flow** (`config_flow_handler/config_flow.py`):
-
    - User adds integration → shows forms → collects input → creates `ConfigEntry`
    - Methods like `async_show_form()`, `async_create_entry()` are Data Entry Flow
 
 2. **Options Flow** (`config_flow_handler/options_flow.py`):
-
    - User changes settings → shows forms → collects input → updates `ConfigEntry.options`
 
 3. **Subentry Flow** (`config_flow_handler/subentry_flow.py`):
-
    - User adds sub-devices → shows forms → collects input → creates sub-entries
 
 4. **Repair Flow** (`repairs.py` - separate from config_flow_handler):
@@ -77,7 +74,7 @@ Understanding the relationship between these components is essential:
 2. User enters host/credentials → **Data Entry Flow** validates and collects input
 3. `ConfigEntry` created with data/options → stored in `.storage/core.config_entries`
 4. `async_setup_entry()` runs → creates runtime objects (client, coordinator)
-5. `entry.runtime_data = IntegrationBlueprintData(...)` → stores runtime objects (from `data.py`)
+5. `entry.runtime_data = AirCloudHomeData(...)` → stores runtime objects (from `data.py`)
 6. Integration operates using `entry.runtime_data.coordinator`, `entry.runtime_data.client`
 
 ## Data Entry Flow Fundamentals

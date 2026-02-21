@@ -1,0 +1,13 @@
+{
+  "domain": "aircloudhome",
+  "name": "Shirokuma AC (aircloudhome) Integration",
+  "codeowners": [
+    "@nogic1008"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/nogic1008/ha_aircloudhome",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/nogic1008/ha_aircloudhome/issues",
+  "version": "0.1.0"
+}

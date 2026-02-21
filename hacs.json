@@ -1,5 +1,5 @@
 {
-  "name": "Integration blueprint",
+  "name": "Shirokuma AC (aircloudhome) Integration",
   "homeassistant": "2025.12.3",
   "hacs": "2.0.5"
 }

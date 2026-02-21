@@ -80,12 +80,10 @@ Create a new ADR in `docs/development/adr/NNNN-title-of-decision.md`:
 **Consequences:**
 
 - **Positive:**
-
   - [Positive outcome 1]
   - [Positive outcome 2]
 
 - **Negative:**
-
   - [Negative outcome 1 and how we'll mitigate]
   - [Negative outcome 2 and how we'll mitigate]
 
@@ -96,8 +94,8 @@ Create a new ADR in `docs/development/adr/NNNN-title-of-decision.md`:
 
 **Files affected:**
 
-- `custom_components/ha_integration_domain/[file1.py]`
-- `custom_components/ha_integration_domain/[file2.py]`
+- `custom_components/aircloudhome/[file1.py]`
+- `custom_components/aircloudhome/[file2.py]`
 
 **Code pattern to follow:**
 
@@ -216,8 +214,8 @@ Create a new ADR in `docs/development/adr/NNNN-title-of-decision.md`:
 
 ## Integration Context
 
-- **Domain:** `ha_integration_domain`
-- **Class prefix:** `IntegrationBlueprint`
+- **Domain:** `aircloudhome`
+- **Class prefix:** `AirCloudHome`
 - **Architecture docs:** `docs/development/ARCHITECTURE.md`
 - **Decisions log:** `docs/development/DECISIONS.md`
 
