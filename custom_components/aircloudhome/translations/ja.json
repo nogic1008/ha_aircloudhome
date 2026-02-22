@@ -1,0 +1,60 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "設定に関するヘルプが必要な場合は、[ドキュメント]({documentation_url})をご覧ください。",
+        "data": {
+          "email": "メールアドレス",
+          "password": "パスワード"
+        }
+      },
+      "reconfigure": {
+        "description": "このインテグレーションの認証情報を更新してください。",
+        "data": {
+          "email": "メールアドレス",
+          "password": "パスワード"
+        }
+      },
+      "reauth_confirm": {
+        "title": "インテグレーションの再認証",
+        "description": "{email} の認証情報が無効になりました。アクセスを復旧するために、更新された認証情報を入力してください。",
+        "data": {
+          "email": "メールアドレス",
+          "password": "パスワード"
+        }
+      }
+    },
+    "error": {
+      "auth": "メールアドレスまたはパスワードが間違っています。",
+      "connection": "サーバーに接続できません。",
+      "unknown": "不明なエラーが発生しました。"
+    },
+    "abort": {
+      "already_configured": "このエントリはすでに設定されています。"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "インテグレーションオプションの設定",
+        "description": "このインテグレーションの動作をカスタマイズしてください。",
+        "data": {
+          "update_interval_minutes": "更新間隔（分）",
+          "enable_debugging": "デバッグログを有効にする"
+        },
+        "data_description": {
+          "update_interval_minutes": "APIからデータを更新する頻度（1～1440分）",
+          "enable_debugging": "トラブルシューティングの詳細なデバッグログを有効にする"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "authentication_failed": {
+      "message": "データ更新中に認証が失敗しました。"
+    },
+    "update_failed": {
+      "message": "サーバーからのデータ更新に失敗しました。"
+    }
+  }
+}
