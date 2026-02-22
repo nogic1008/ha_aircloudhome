@@ -1,0 +1,60 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "description": "If you need help with the configuration have a look at the [documentation]({documentation_url}).",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      },
+      "reconfigure": {
+        "description": "Update the credentials for this integration.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reauthenticate Integration",
+        "description": "The credentials for {email} are no longer valid. Please provide updated credentials to restore access.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "auth": "Email/Password is wrong.",
+      "connection": "Unable to connect to the server.",
+      "unknown": "Unknown error occurred."
+    },
+    "abort": {
+      "already_configured": "This entry is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure Integration Options",
+        "description": "Customize how this integration operates.",
+        "data": {
+          "update_interval_minutes": "Update interval (minutes)",
+          "enable_debugging": "Enable debug logging"
+        },
+        "data_description": {
+          "update_interval_minutes": "How often to refresh data from the API (1 to 1440 minutes)",
+          "enable_debugging": "Enable detailed debug logging for troubleshooting"
+        }
+      }
+    }
+  },
+  "exceptions": {
+    "authentication_failed": {
+      "message": "Authentication failed during data update."
+    },
+    "update_failed": {
+      "message": "Failed to update data from the server."
+    }
+  }
+}
