@@ -173,17 +173,24 @@ Returns all AC units (indoor units / IDUs) registered to a family group.
 
 **`mode` values:**
 
-| API value | Meaning |
+| API value | Meaning (on app) |
 | --------- | ------- |
-| `HEATING` | Heat |
-| `COOLING` | Cool |
-| `FAN` | Fan only |
-| `DRY` | Dry |
-| `DRY_COOL` | Cool-dry (涼快) |
-| `AUTO` | Auto |
+| `HEATING` | Heating (暖房) |
+| `COOLING` | Cooling (冷房) |
+| `FAN` | Fan (送風) |
+| `DRY` | Dry (除湿) |
+| `DRY_COOL` | Dry Cool (涼快) |
+| `AUTO` | Auto (自動) |
 | `UNKNOWN` | Unknown / other |
 
-**`fanSpeed` values:** `AUTO`, `LV1`, `LV2`, `LV3`, `LV4`, `LV5`
+**`fanSpeed` values:**
+
+- `AUTO` (Auto/自動 on app)
+- `LV1` (1 on app)
+- `LV2` (2 on app)
+- `LV3` (3 on app)
+- `LV4` (4 on app)
+- `LV5` (5 on app)
 
 **`fanSwing` values:**
 
