@@ -44,6 +44,7 @@ class AirCloudHomeEntity(CoordinatorEntity[AirCloudHomeDataUpdateCoordinator]):
         self,
         coordinator: AirCloudHomeDataUpdateCoordinator,
         entity_description: EntityDescription,
+        device_id: str | None = None,
     ) -> None:
         """
         Initialize the base entity.
@@ -51,20 +52,40 @@ class AirCloudHomeEntity(CoordinatorEntity[AirCloudHomeDataUpdateCoordinator]):
         Args:
             coordinator: The data update coordinator for this entity.
             entity_description: The entity description defining characteristics.
+            device_id: Optional device ID for multi-device support (e.g., AC unit ID).
 
         """
         super().__init__(coordinator)
         self.entity_description = entity_description
-        # Include entity description key in unique_id to support multiple entities
-        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{entity_description.key}"
-        self._attr_device_info = DeviceInfo(
+
+        # Generate unique ID with optional device ID
+        if device_id is not None:
+            self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{device_id}_{entity_description.key}"
+        else:
+            self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{entity_description.key}"
+
+    def _get_device_info(self) -> DeviceInfo:
+        """
+        Get device information for this entity.
+
+        Override this method in subclasses to customize device info per entity type.
+
+        Returns:
+            DeviceInfo for the device associated with this entity.
+        """
+        return DeviceInfo(
             identifiers={
                 (
-                    coordinator.config_entry.domain,
-                    coordinator.config_entry.entry_id,
+                    self.coordinator.config_entry.domain,
+                    self.coordinator.config_entry.entry_id,
                 ),
             },
-            name=coordinator.config_entry.title,
-            manufacturer=coordinator.config_entry.domain,
-            model=coordinator.data.get("model", "Unknown"),
+            name=self.coordinator.config_entry.title,
+            manufacturer=self.coordinator.config_entry.domain,
+            model=self.coordinator.data.get("model", "Unknown"),
         )
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return the device info."""
+        return self._get_device_info()

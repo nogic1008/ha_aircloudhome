@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .air_conditioning import AirCloudHomeAirConditioner
+from .air_conditioning import CLIMATE_ENTITY_DESCRIPTION, AirCloudHomeAirConditioner
 
 if TYPE_CHECKING:
     from custom_components.aircloudhome.data import AirCloudHomeConfigEntry
@@ -25,6 +25,7 @@ async def async_setup_entry(
     async_add_entities(
         AirCloudHomeAirConditioner(
             coordinator=coordinator,
+            entity_description=CLIMATE_ENTITY_DESCRIPTION,
             device=device,
         )
         for device in devices

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from custom_components.aircloudhome.const import ATTRIBUTION, DOMAIN
 from custom_components.aircloudhome.coordinator import AirCloudHomeDataUpdateCoordinator
+from custom_components.aircloudhome.entity import AirCloudHomeEntity
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     FAN_AUTO,
@@ -19,6 +19,13 @@ from homeassistant.components.climate.const import (
 )
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import EntityDescription
+
+# Climate entity description for AC units
+CLIMATE_ENTITY_DESCRIPTION = EntityDescription(
+    key="climate",
+    name="Air Conditioner",
+)
 
 # Map API modes to Home Assistant HVAC modes
 API_MODE_TO_HVAC_MODE = {
@@ -78,11 +85,9 @@ HA_SWING_TO_API = {
 }
 
 
-class AirCloudHomeAirConditioner(ClimateEntity):
+class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
     """Climate entity for AirCloud Home AC device."""
 
-    _attr_attribution = ATTRIBUTION
-    _attr_has_entity_name = True
     _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_min_temp = 16.0
     _attr_max_temp = 32.0
@@ -108,21 +113,21 @@ class AirCloudHomeAirConditioner(ClimateEntity):
     def __init__(
         self,
         coordinator: AirCloudHomeDataUpdateCoordinator,
+        entity_description: EntityDescription,
         device: dict[str, Any],
     ) -> None:
         """Initialize the climate entity."""
-        self.coordinator = coordinator
+        super().__init__(coordinator, entity_description, device_id=str(device["id"]))
         self._device = device
-        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{device['id']}"
-        self._attr_name = device.get("name", f"AC Unit {device['id']}")
 
-        # Device info
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._attr_unique_id)},
-            name=self._attr_name,
-            manufacturer=device.get("model"),
-            serial_number=device.get("serialNumber"),
-            hw_version=device.get("vendorThingId"),
+    def _get_device_info(self) -> DeviceInfo:
+        """Get device information for this AC unit."""
+        return DeviceInfo(
+            identifiers={("aircloudhome", f"{self.coordinator.config_entry.entry_id}_{self._device['id']}")},
+            name=self._device.get("name", f"AC Unit {self._device['id']}"),
+            manufacturer=self._device.get("model"),
+            serial_number=self._device.get("serialNumber"),
+            hw_version=self._device.get("vendorThingId"),
         )
 
     @property
