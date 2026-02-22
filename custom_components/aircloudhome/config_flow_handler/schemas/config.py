@@ -54,12 +54,12 @@ def get_user_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     )
 
 
-def get_reconfigure_schema(username: str) -> vol.Schema:
+def get_reconfigure_schema(email: str) -> vol.Schema:
     """
     Get schema for reconfigure step.
 
     Args:
-        username: Current username to pre-fill in the form.
+        email: Current email to pre-fill in the form.
 
     Returns:
         Voluptuous schema for reconfiguration.
@@ -69,7 +69,7 @@ def get_reconfigure_schema(username: str) -> vol.Schema:
         {
             vol.Required(
                 CONF_USERNAME,
-                default=username,
+                default=email,
             ): selector.TextSelector(
                 selector.TextSelectorConfig(
                     type=selector.TextSelectorType.TEXT,
@@ -86,12 +86,12 @@ def get_reconfigure_schema(username: str) -> vol.Schema:
     )
 
 
-def get_reauth_schema(username: str) -> vol.Schema:
+def get_reauth_schema(email: str) -> vol.Schema:
     """
     Get schema for reauthentication step.
 
     Args:
-        username: Current username to pre-fill in the form.
+        email: Current email to pre-fill in the form.
 
     Returns:
         Voluptuous schema for reauthentication.
@@ -101,7 +101,7 @@ def get_reauth_schema(username: str) -> vol.Schema:
         {
             vol.Required(
                 CONF_USERNAME,
-                default=username,
+                default=email,
             ): selector.TextSelector(
                 selector.TextSelectorConfig(
                     type=selector.TextSelectorType.TEXT,

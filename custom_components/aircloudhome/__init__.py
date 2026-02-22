@@ -1,13 +1,8 @@
 """
 Custom integration to integrate aircloudhome with Home Assistant.
 
-This integration demonstrates best practices for:
-- Config flow setup (user, reconfigure, reauth)
-- DataUpdateCoordinator pattern for efficient data fetching
-- Multiple platform types (sensor, binary_sensor, switch, select, number)
-- Service registration and handling
-- Device and entity management
-- Proper error handling and recovery
+This integration provides climate entity support for Shirokuma AC (aircloudhome)
+devices, enabling control of air conditioning units through Home Assistant.
 
 For more details about this integration, please refer to:
 https://github.com/nogic1008/ha_aircloudhome
@@ -30,7 +25,6 @@ from .api import AirCloudHomeApiClient
 from .const import DOMAIN, LOGGER
 from .coordinator import AirCloudHomeDataUpdateCoordinator
 from .data import AirCloudHomeData
-from .service_actions import async_setup_services
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -38,13 +32,7 @@ if TYPE_CHECKING:
     from .data import AirCloudHomeConfigEntry
 
 PLATFORMS: list[Platform] = [
-    Platform.BINARY_SENSOR,
-    Platform.BUTTON,
-    Platform.FAN,
-    Platform.NUMBER,
-    Platform.SELECT,
-    Platform.SENSOR,
-    Platform.SWITCH,
+    Platform.CLIMATE,
 ]
 
 # This integration is configured via config entries only
@@ -55,25 +43,13 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """
     Set up the integration.
 
-    This is called once at Home Assistant startup to register service actions.
-    Service actions must be registered here (not in async_setup_entry) to ensure:
-    - Service action validation works correctly
-    - Service actions are available even without config entries
-    - Helpful error messages are provided
-
-    This is a Silver Quality Scale requirement.
-
     Args:
         hass: The Home Assistant instance.
         config: The Home Assistant configuration.
 
     Returns:
         True if setup was successful.
-
-    For more information:
-    https://developers.home-assistant.io/docs/dev_101_services
     """
-    await async_setup_services(hass)
     return True
 
 
@@ -88,19 +64,15 @@ async def async_setup_entry(
     1. Creates the API client with credentials from the config entry
     2. Initializes the DataUpdateCoordinator for data fetching
     3. Performs the first data refresh
-    4. Sets up all platforms (sensors, switches, etc.)
-    5. Registers services
-    6. Sets up reload listener for config changes
+    4. Sets up the climate platform
+    5. Sets up reload listener for config changes
 
     Data flow in this integration:
     1. User enters username/password in config flow (config_flow.py)
     2. Credentials stored in entry.data[CONF_USERNAME/CONF_PASSWORD]
     3. API Client initialized with credentials (api/client.py)
     4. Coordinator fetches data using authenticated client (coordinator/base.py)
-    5. Entities access data via self.coordinator.data (sensor/, binary_sensor/, etc.)
-
-    This pattern ensures credentials from setup flow are used throughout
-    the integration's lifecycle for API communication.
+    5. Climate entities access data via self.coordinator.data (climate/)
 
     Args:
         hass: The Home Assistant instance.
@@ -114,7 +86,7 @@ async def async_setup_entry(
     """
     # Initialize client first
     client = AirCloudHomeApiClient(
-        username=entry.data[CONF_USERNAME],  # From config flow setup
+        email=entry.data[CONF_USERNAME],  # From config flow setup
         password=entry.data[CONF_PASSWORD],  # From config flow setup
         session=async_get_clientsession(hass),
     )
@@ -155,7 +127,6 @@ async def async_unload_entry(
     This is called when the integration is being removed or reloaded.
     It ensures proper cleanup of:
     - All platform entities
-    - Registered services
     - Update listeners
 
     Args:

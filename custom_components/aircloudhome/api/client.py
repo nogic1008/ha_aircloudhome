@@ -1,8 +1,8 @@
 """
 API Client for aircloudhome.
 
-This module provides the API client for communicating with external services.
-It demonstrates proper error handling, authentication patterns, and async operations.
+This module provides the API client for communicating with the AirCloud Home API.
+It handles authentication, device data fetching, and device control operations.
 
 For more information on creating API clients:
 https://developers.home-assistant.io/docs/api_lib_index
@@ -57,34 +57,28 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
 
 class AirCloudHomeApiClient:
     """
-    API Client for Smart Air Purifier integration.
+    API Client for AirCloud Home AC integration.
 
-    This client demonstrates authentication and API communication patterns
-    for Home Assistant integrations. It handles HTTP requests, error handling,
-    and credential management.
-
-    The username and password are stored and would be used for:
-    - HTTP Basic Auth headers
-    - OAuth token exchange
-    - API key generation
-    - Session token management
-
-    Note: JSONPlaceholder is used as a demo endpoint and doesn't require auth.
-    In production, replace with your actual API endpoint that validates credentials.
+    This client handles communication with the AirCloud Home API for controlling
+    Shirokuma AC units. It manages authentication, device discovery, and device control.
 
     For more information on API clients:
     https://developers.home-assistant.io/docs/api_lib_index
 
     Attributes:
-        _username: The username for API authentication.
+        _email: The email for API authentication.
         _password: The password for API authentication.
         _session: The aiohttp ClientSession for making requests.
+        _access_token: The current access token for API requests.
+        _refresh_token: The refresh token for obtaining new access tokens.
 
     """
 
+    _BASE_URL = "https://api-kuma.aircloudhome.com"
+
     def __init__(
         self,
-        username: str,
+        email: str,
         password: str,
         session: aiohttp.ClientSession,
     ) -> None:
@@ -92,27 +86,23 @@ class AirCloudHomeApiClient:
         Initialize the API Client with credentials.
 
         Args:
-            username: The username for authentication from config flow.
+            email: The email for authentication from config flow.
             password: The password for authentication from config flow.
             session: The aiohttp ClientSession to use for requests.
 
         """
-        self._username = username
+        self._email = email
         self._password = password
         self._session = session
+        self._access_token: str | None = None
+        self._refresh_token: str | None = None
 
-    async def async_get_data(self) -> Any:
+    async def async_sign_in(self) -> dict[str, Any]:
         """
-        Get data from the API.
-
-        This method fetches the current state and sensor data from the device.
-        It demonstrates where credentials would be used in production:
-        - Authorization headers (Basic Auth, Bearer Token)
-        - Query parameters (username, api_key)
-        - Session cookies (after login)
+        Sign in to the API and get access/refresh tokens.
 
         Returns:
-            A dictionary containing the device data.
+            A dictionary with tokens: {"token": access_token, "refreshToken": refresh_token}
 
         Raises:
             AirCloudHomeApiClientAuthenticationError: If authentication fails.
@@ -120,28 +110,51 @@ class AirCloudHomeApiClient:
             AirCloudHomeApiClientError: For other API errors.
 
         """
-        # In production: Use username/password for authentication
-        # Example patterns:
-        # 1. Basic Auth: auth=aiohttp.BasicAuth(self._username, self._password)
-        # 2. Token: headers={"Authorization": f"Bearer {self._get_token()}"}
-        # 3. API Key: params={"username": self._username, "key": self._password}
+        data = {
+            "email": self._email,
+            "password": self._password,
+        }
+        response = await self._api_wrapper(
+            method="post",
+            url=f"{self._BASE_URL}/iam/auth/sign-in",
+            data=data,
+        )
+        self._access_token = response.get("token")
+        self._refresh_token = response.get("refreshToken")
+        return response
 
-        return await self._api_wrapper(
+    async def async_get_family_groups(self) -> list[dict[str, Any]]:
+        """
+        Get list of family groups for the authenticated user.
+
+        Returns:
+            A list of family groups with their details.
+
+        Raises:
+            AirCloudHomeApiClientAuthenticationError: If authentication fails.
+            AirCloudHomeApiClientCommunicationError: If communication fails.
+            AirCloudHomeApiClientError: For other API errors.
+
+        """
+        if not self._access_token:
+            await self.async_sign_in()
+
+        response = await self._api_wrapper(
             method="get",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            # For demo purposes with JSONPlaceholder (no auth required)
-            # In production, add authentication here
+            url=f"{self._BASE_URL}/iam/family-account/v2/groups",
+            headers={"Authorization": f"Bearer {self._access_token}"},
         )
+        return response.get("result", [])
 
-    async def async_set_fan_speed(self, speed: str) -> Any:
+    async def async_get_idu_list(self, family_id: int) -> list[dict[str, Any]]:
         """
-        Set the fan speed on the device.
+        Get list of indoor units (IDU) for a family group.
 
         Args:
-            speed: The fan speed to set (low, medium, high, auto).
+            family_id: The family group ID.
 
         Returns:
-            A dictionary containing the API response.
+            A list of indoor units with their current state.
 
         Raises:
             AirCloudHomeApiClientAuthenticationError: If authentication fails.
@@ -149,23 +162,45 @@ class AirCloudHomeApiClient:
             AirCloudHomeApiClientError: For other API errors.
 
         """
-        # In production: Send authenticated request to change fan speed
-        return await self._api_wrapper(
-            method="patch",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            data={"fan_speed": speed, "user": self._username},
-            headers={"Content-type": "application/json; charset=UTF-8"},
-        )
+        if not self._access_token:
+            await self.async_sign_in()
 
-    async def async_set_target_humidity(self, humidity: int) -> Any:
+        response = await self._api_wrapper(
+            method="get",
+            url=f"{self._BASE_URL}/rac/ownership/groups/{family_id}/idu-list",
+            headers={"Authorization": f"Bearer {self._access_token}"},
+        )
+        return response if isinstance(response, list) else []
+
+    async def async_control_device(
+        self,
+        rac_id: int,
+        family_id: int,
+        power: str | None = None,
+        mode: str | None = None,
+        fan_speed: str | None = None,
+        fan_swing: str | None = None,
+        idu_temperature: float | None = None,
+        humidity: int | None = None,
+    ) -> dict[str, Any]:
         """
-        Set the target humidity on the device.
+        Control an AC device.
+
+        All state parameters are required in the API, so this method will fetch
+        the current state if not provided for any parameter.
 
         Args:
-            humidity: The target humidity percentage (30-80).
+            rac_id: The device ID (id from idu-list).
+            family_id: The family group ID.
+            power: "ON" or "OFF".
+            mode: "HEATING", "COOLING", "FAN", "DRY", "DRY_COOL", "AUTO", or "UNKNOWN".
+            fan_speed: "AUTO", "LV1", "LV2", "LV3", "LV4", or "LV5".
+            fan_swing: "AUTO", "OFF", "VERTICAL", "HORIZONTAL", or "ALL".
+            idu_temperature: Target temperature (0.5 degree increments, 16-32 range).
+            humidity: Target humidity (5% increments, 40-60 range).
 
         Returns:
-            A dictionary containing the API response.
+            The API response with command ID.
 
         Raises:
             AirCloudHomeApiClientAuthenticationError: If authentication fails.
@@ -173,12 +208,25 @@ class AirCloudHomeApiClient:
             AirCloudHomeApiClientError: For other API errors.
 
         """
-        # In production: Send authenticated request to change humidity setting
+        if not self._access_token:
+            await self.async_sign_in()
+
+        # All parameters are required for the API
+        data = {
+            "power": power or "ON",
+            "mode": mode or "AUTO",
+            "fanSpeed": fan_speed or "AUTO",
+            "fanSwing": fan_swing or "AUTO",
+            "iduTemperature": idu_temperature if idu_temperature is not None else 22.0,
+        }
+        if humidity is not None:
+            data["humidity"] = humidity
+
         return await self._api_wrapper(
-            method="patch",
-            url="https://jsonplaceholder.typicode.com/posts/1",
-            data={"target_humidity": humidity, "user": self._username},
-            headers={"Content-type": "application/json; charset=UTF-8"},
+            method="put",
+            url=f"{self._BASE_URL}/rac/basic-idu-control/general-control-command/{rac_id}?familyId={family_id}",
+            data=data,
+            headers={"Authorization": f"Bearer {self._access_token}"},
         )
 
     async def _api_wrapper(

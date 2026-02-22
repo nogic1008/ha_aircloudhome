@@ -93,13 +93,13 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 await validate_credentials(
                     self.hass,
-                    username=user_input[CONF_USERNAME],
+                    email=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )
             except Exception as exception:  # noqa: BLE001
                 errors["base"] = self._map_exception_to_error(exception)
             else:
-                # Set unique ID based on username
+                # Set unique ID based on email
                 # NOTE: This is just an example - use a proper unique ID in production
                 # See: https://developers.home-assistant.io/docs/config_entries_config_flow_handler#unique-ids
                 await self.async_set_unique_id(slugify(user_input[CONF_USERNAME]))
@@ -143,7 +143,7 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 await validate_credentials(
                     self.hass,
-                    username=user_input[CONF_USERNAME],
+                    email=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )
             except Exception as exception:  # noqa: BLE001
@@ -202,7 +202,7 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 await validate_credentials(
                     self.hass,
-                    username=user_input[CONF_USERNAME],
+                    email=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )
             except Exception as exception:  # noqa: BLE001

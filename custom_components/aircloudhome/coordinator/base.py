@@ -13,10 +13,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from custom_components.aircloudhome.api import (
-    AirCloudHomeApiClientAuthenticationError,
-    AirCloudHomeApiClientError,
-)
+from custom_components.aircloudhome.api import AirCloudHomeApiClientAuthenticationError, AirCloudHomeApiClientError
 from custom_components.aircloudhome.const import LOGGER
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -68,46 +65,54 @@ class AirCloudHomeDataUpdateCoordinator(DataUpdateCoordinator):
         """
         Fetch data from API endpoint.
 
-        This is the only method that should be implemented in a DataUpdateCoordinator.
-        It is called automatically based on the update_interval.
-
-        Context-based fetching:
-        The coordinator tracks which entities are currently listening via async_contexts().
-        This allows optimizing API calls to only fetch data that's actually needed.
-        For example, if only sensor entities are enabled, we can skip fetching switch data.
-
-        The API client uses the credentials from config_entry to authenticate:
-        - username: from config_entry.data["username"]
-        - password: from config_entry.data["password"]
-
-        Expected API response structure (example):
-        {
-            "userId": 1,      # Used as device identifier
-            "id": 1,          # Data record ID
-            "title": "...",   # Additional metadata
-            "body": "...",    # Additional content
-            # In production, would include:
-            # "air_quality": {"aqi": 45, "pm25": 12.3},
-            # "filter": {"life_remaining": 75, "runtime_hours": 324},
-            # "settings": {"fan_speed": "medium", "humidity": 55}
-        }
+        This method fetches device data from the AirCloud Home API.
+        It retrieves family group information and the list of indoor units (AC devices).
 
         Returns:
-            The data from the API as a dictionary.
+            A dictionary with structure: {
+                "devices": [
+                    {
+                        "id": int,
+                        "name": str,
+                        "power": "ON"|"OFF",
+                        "mode": str,
+                        "iduTemperature": float,
+                        "roomTemperature": float,
+                        "fanSpeed": str,
+                        "fanSwing": str,
+                        "humidity": int,
+                        "online": bool,
+                        "familyId": int,
+                    }
+                ]
+            }
 
         Raises:
             ConfigEntryAuthFailed: If authentication fails, triggers reauthentication.
             UpdateFailed: If data fetching fails for other reasons, optionally with retry_after.
         """
         try:
-            # Optional: Get active entity contexts to optimize data fetching
-            # listening_contexts = set(self.async_contexts())
-            # LOGGER.debug("Active entity contexts: %s", listening_contexts)
+            client = self.config_entry.runtime_data.client
 
-            # Fetch data from API
-            # In production, you could pass listening_contexts to optimize the API call:
-            # return await self.config_entry.runtime_data.client.async_get_data(listening_contexts)
-            return await self.config_entry.runtime_data.client.async_get_data()
+            # Fetch family groups
+            family_groups = await client.async_get_family_groups()
+            if not family_groups:
+                LOGGER.warning("No family groups found for user")
+                return {"devices": []}
+
+            # Fetch devices from all family groups
+            devices = []
+            for family_group in family_groups:
+                family_id = family_group.get("familyId")
+                if not family_id:
+                    LOGGER.warning("Family group missing familyId")
+                    continue
+
+                idu_list = await client.async_get_idu_list(family_id)
+
+                for device in idu_list:
+                    device["familyId"] = family_id
+                    devices.append(device)
         except AirCloudHomeApiClientAuthenticationError as exception:
             LOGGER.warning("Authentication error - %s", exception)
             raise ConfigEntryAuthFailed(
@@ -116,10 +121,9 @@ class AirCloudHomeDataUpdateCoordinator(DataUpdateCoordinator):
             ) from exception
         except AirCloudHomeApiClientError as exception:
             LOGGER.exception("Error communicating with API")
-            # If the API provides rate limit information, you can honor it:
-            # if hasattr(exception, 'retry_after'):
-            #     raise UpdateFailed(retry_after=exception.retry_after) from exception
             raise UpdateFailed(
                 translation_domain="aircloudhome",
                 translation_key="update_failed",
             ) from exception
+        else:
+            return {"devices": devices}

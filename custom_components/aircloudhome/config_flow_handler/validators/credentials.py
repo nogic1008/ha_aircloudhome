@@ -20,13 +20,13 @@ if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-async def validate_credentials(hass: HomeAssistant, username: str, password: str) -> None:
+async def validate_credentials(hass: HomeAssistant, email: str, password: str) -> None:
     """
     Validate user credentials by testing API connection.
 
     Args:
         hass: Home Assistant instance.
-        username: The username to validate.
+        email: The email to validate.
         password: The password to validate.
 
     Raises:
@@ -36,11 +36,11 @@ async def validate_credentials(hass: HomeAssistant, username: str, password: str
 
     """
     client = AirCloudHomeApiClient(
-        username=username,
+        email=email,
         password=password,
         session=async_create_clientsession(hass),
     )
-    await client.async_get_data()  # May raise authentication/communication errors
+    await client.async_sign_in()  # May raise authentication/communication errors
 
 
 __all__ = [

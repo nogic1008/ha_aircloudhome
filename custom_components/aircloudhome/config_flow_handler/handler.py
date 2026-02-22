@@ -19,9 +19,7 @@ https://developers.home-assistant.io/docs/config_entries_config_flow_handler
 
 from __future__ import annotations
 
-from custom_components.aircloudhome.config_flow_handler.config_flow import (
-    AirCloudHomeConfigFlowHandler,
-)
+from custom_components.aircloudhome.config_flow_handler.config_flow import AirCloudHomeConfigFlowHandler
 from custom_components.aircloudhome.config_flow_handler.options_flow import AirCloudHomeOptionsFlow
 
 # Re-export for backwards compatibility and external imports
