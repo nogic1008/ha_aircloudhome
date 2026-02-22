@@ -119,6 +119,11 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
         """Initialize the climate entity."""
         super().__init__(coordinator, entity_description, device_id=str(device["id"]))
         self._device = device
+        self._supports_humidity = "humidity" in device
+        if self._supports_humidity:
+            self._attr_supported_features |= ClimateEntityFeature.TARGET_HUMIDITY
+            self._attr_min_humidity = 40
+            self._attr_max_humidity = 60
 
     def _get_device_info(self) -> DeviceInfo:
         """Get device information for this AC unit."""
@@ -144,6 +149,11 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
     def target_temperature(self) -> float | None:
         """Return the target temperature."""
         return self._device.get("iduTemperature")
+
+    @property
+    def target_humidity(self) -> int | None:
+        """Return the target humidity."""
+        return self._device.get("humidity")
 
     @property
     def hvac_mode(self) -> HVACMode:
@@ -195,6 +205,16 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
         api_swing = HA_SWING_TO_API.get(swing_mode, "OFF")
         await self._async_update_device(fan_swing=api_swing)
 
+    async def async_set_humidity(self, humidity: int) -> None:
+        """Set new target humidity."""
+        if not self._supports_humidity:
+            return
+
+        humidity_value = max(self._attr_min_humidity, min(self._attr_max_humidity, float(humidity)))
+        # Round to nearest 5
+        humidity_target = int(round(humidity_value / 5) * 5)
+        await self._async_update_device(humidity=humidity_target)
+
     async def async_turn_on(self) -> None:
         """Turn on the AC."""
         await self._async_update_device(power="ON")
@@ -210,6 +230,7 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
         fan_speed: str | None = None,
         fan_swing: str | None = None,
         idu_temperature: float | None = None,
+        humidity: int | None = None,
     ) -> None:
         """Update device state through the API."""
         # Use current values for parameters not being updated
@@ -218,6 +239,11 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
         current_fan_speed = self._device.get("fanSpeed", "AUTO")
         current_fan_swing = self._device.get("fanSwing", "OFF")
         current_temp = self._device.get("iduTemperature", 22.0)
+        # humidity is the target humidity setpoint retrieved from the device, not the measured room humidity.
+        target_humidity_raw = self._device.get("humidity")
+        target_humidity_setpoint = (
+            int(round(target_humidity_raw)) if isinstance(target_humidity_raw, (int, float)) else None
+        )
 
         try:
             await self.coordinator.config_entry.runtime_data.client.async_control_device(
@@ -228,6 +254,7 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
                 fan_speed=fan_speed or current_fan_speed,
                 fan_swing=fan_swing or current_fan_swing,
                 idu_temperature=idu_temperature if idu_temperature is not None else current_temp,
+                humidity=humidity if humidity is not None else target_humidity_setpoint,
             )
 
             # Update local state immediately for responsiveness
@@ -241,6 +268,8 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
                 self._device["fanSwing"] = fan_swing
             if idu_temperature is not None:
                 self._device["iduTemperature"] = idu_temperature
+            if humidity is not None:
+                self._device["humidity"] = humidity
 
             self.async_write_ha_state()
 
