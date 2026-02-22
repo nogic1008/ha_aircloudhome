@@ -2,6 +2,17 @@
 
 This document describes all configuration options and settings available in the Shirokuma AC (aircloudhome) Integration custom integration.
 
+## Prerequisites
+
+### Initial Setup with Shirokuma-kun App
+
+Before configuring this integration in Home Assistant, you must perform initial setup using the **[Shirokuma-kun App (白くまくんアプリ)](https://kadenfan.hitachi.co.jp/ra/app2/)**:
+
+1. **User Registration:** Create an AirCloud Home account using the Shirokuma-kun App
+2. **Device Registration:** Register your AC unit in the app
+
+Without completing these steps, the Home Assistant integration will not be able to access your devices.
+
 ## Integration Configuration
 
 ### Initial Setup Options

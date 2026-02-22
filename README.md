@@ -63,6 +63,16 @@ If you prefer not to use HACS:
 
 </details>
 
+### Step 1.5: Initial Setup with Shirokuma-kun App
+
+**Important:** Before configuring this integration in Home Assistant, you must complete initial setup using the official **[Shirokuma-kun App (白くまくんアプリ)](https://kadenfan.hitachi.co.jp/ra/app2/)**:
+
+1. **Download and install** the Shirokuma-kun App on your smartphone (iOS/Android)
+2. **Create an account** - Sign up for an AirCloud Home account using your email
+3. **Register your AC unit** - Add your air conditioner to your account in the app
+
+Without completing these steps, the Home Assistant integration will not be able to connect to your devices.
+
 ### Step 2: Add and Configure the Integration
 
 **Important:** You must have installed the integration first (see Step 1) and restarted Home Assistant!
