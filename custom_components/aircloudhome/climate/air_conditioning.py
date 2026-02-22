@@ -9,6 +9,7 @@ from custom_components.aircloudhome.entity import AirCloudHomeEntity
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import (
     FAN_AUTO,
+    PRESET_NONE,
     SWING_BOTH,
     SWING_HORIZONTAL,
     SWING_OFF,
@@ -27,6 +28,9 @@ CLIMATE_ENTITY_DESCRIPTION = EntityDescription(
     name="Air Conditioner",
 )
 
+# Preset mode for DRY_COOL — a device-specific mode that has no direct HVACMode equivalent
+PRESET_DRY_COOL = "dry_cool"
+
 # Map API modes to Home Assistant HVAC modes
 API_MODE_TO_HVAC_MODE = {
     "HEATING": HVACMode.HEAT,
@@ -34,7 +38,7 @@ API_MODE_TO_HVAC_MODE = {
     "DRY": HVACMode.DRY,
     "FAN": HVACMode.FAN_ONLY,
     "AUTO": HVACMode.AUTO,
-    "DRY_COOL": HVACMode.COOL,  # Treat as cool
+    "DRY_COOL": HVACMode.DRY,  # Dry Cool - reported as DRY mode; distinguished via preset
     "UNKNOWN": HVACMode.OFF,
 }
 
@@ -96,6 +100,7 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
         ClimateEntityFeature.TARGET_TEMPERATURE
         | ClimateEntityFeature.FAN_MODE
         | ClimateEntityFeature.SWING_MODE
+        | ClimateEntityFeature.PRESET_MODE
         | ClimateEntityFeature.TURN_OFF
         | ClimateEntityFeature.TURN_ON
     )
@@ -109,6 +114,7 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
     ]
     _attr_fan_modes = [FAN_AUTO, "level_1", "level_2", "level_3", "level_4", "level_5"]
     _attr_swing_modes = [SWING_OFF, SWING_VERTICAL, SWING_HORIZONTAL, SWING_BOTH, SWING_ON]
+    _attr_preset_modes = [PRESET_NONE, PRESET_DRY_COOL]
 
     def __init__(
         self,
@@ -176,6 +182,13 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
         api_swing = self._device.get("fanSwing", "OFF")
         return API_SWING_TO_HA.get(api_swing, "off")
 
+    @property
+    def preset_mode(self) -> str:
+        """Return the current preset mode."""
+        if self._device.get("power") == "ON" and self._device.get("mode") == "DRY_COOL":
+            return PRESET_DRY_COOL
+        return PRESET_NONE
+
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
         temperature = kwargs.get(ATTR_TEMPERATURE)
@@ -204,6 +217,14 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
         """Set new swing mode."""
         api_swing = HA_SWING_TO_API.get(swing_mode, "OFF")
         await self._async_update_device(fan_swing=api_swing)
+
+    async def async_set_preset_mode(self, preset_mode: str) -> None:
+        """Set new preset mode."""
+        if preset_mode == PRESET_DRY_COOL:
+            await self._async_update_device(power="ON", mode="DRY_COOL")
+        elif preset_mode == PRESET_NONE and self._device.get("mode") == "DRY_COOL":
+            # Fall back to DRY when clearing the DRY_COOL preset
+            await self._async_update_device(mode="DRY")
 
     async def async_set_humidity(self, humidity: int) -> None:
         """Set new target humidity."""
