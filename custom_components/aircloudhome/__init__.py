@@ -22,7 +22,7 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.loader import async_get_loaded_integration
 
 from .api import AirCloudHomeApiClient
-from .const import DOMAIN, LOGGER
+from .const import CONF_UPDATE_INTERVAL_MINUTES, DEFAULT_UPDATE_INTERVAL_MINUTES, DOMAIN, LOGGER
 from .coordinator import AirCloudHomeDataUpdateCoordinator
 from .data import AirCloudHomeData
 
@@ -91,13 +91,19 @@ async def async_setup_entry(
         session=async_get_clientsession(hass),
     )
 
+    # Get update interval from options, fallback to default (5 minutes)
+    update_interval_minutes = entry.options.get(
+        CONF_UPDATE_INTERVAL_MINUTES,
+        DEFAULT_UPDATE_INTERVAL_MINUTES,
+    )
+
     # Initialize coordinator with config_entry
     coordinator = AirCloudHomeDataUpdateCoordinator(
         hass=hass,
         logger=LOGGER,
         name=DOMAIN,
         config_entry=entry,
-        update_interval=timedelta(hours=1),
+        update_interval=timedelta(minutes=update_interval_minutes),
         always_update=False,  # Only update entities when data actually changes
     )
 
