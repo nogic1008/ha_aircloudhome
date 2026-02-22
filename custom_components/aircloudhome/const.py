@@ -6,7 +6,7 @@ LOGGER: Logger = getLogger(__package__)
 
 # Integration metadata
 DOMAIN = "aircloudhome"
-ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
+ATTRIBUTION = "Data provided by AirCloud Home (Hitachi)"
 
 # Platform parallel updates - applied to all platforms
 PARALLEL_UPDATES = 1
