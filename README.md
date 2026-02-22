@@ -21,32 +21,19 @@ Uncomment and customize these badges if you want to use them:
 ## ✨ Features
 
 - **Easy Setup**: Simple configuration through the UI - no YAML required
-- **Air Quality Monitoring**: Track AQI and PM2.5 levels in real-time
-- **Filter Management**: Monitor filter life and get replacement alerts
-- **Smart Control**: Adjust fan speed, target humidity, and operating modes
-- **Child Lock**: Safety feature to prevent accidental changes
-- **Diagnostic Info**: View filter life, runtime hours, and device statistics
+- **Full AC Control**: Power on/off, operating mode, target temperature, fan speed, swing direction
+- **Polled Status**: Current room temperature and device state, updated at a configurable interval (default: 5 minutes)
 - **Reconfigurable**: Change credentials anytime without removing the integration
 - **Options Flow**: Adjust settings like update interval after setup
-- **Custom Services**: Advanced control with built-in service calls
+- **Multiple Units**: Supports multiple AC units across multiple family groups
+
+> **🛠️ Tested hardware:** Hitachi RAS-X40L2. Other **room air conditioners (RAC)** connected via AirCloud Home should work. Packaged air conditioners (PAC) use a separate API and are not supported.
 
 **This integration will set up the following platforms.**
 
 Platform | Description
 -- | --
-`sensor` | Air quality index (AQI), PM2.5, filter life, and runtime
-`binary_sensor` | API connection status and filter replacement alert
-`switch` | Child lock and LED display controls
-`select` | Fan speed selection (Low/Medium/High/Auto)
-`number` | Target humidity setting (30-80%)
-`button` | Reset filter timer after replacement
-`fan` | Air purifier fan control with speed settings
-
-> **💡 Interactive Demo**: The entities are interconnected for demonstration:
->
-> - Press the **Reset Filter Timer** button → **Filter Life Remaining** sensor updates to 100%
-> - Change the **Air Purifier** fan speed → **Fan Speed** select syncs automatically
-> - Change the **Fan Speed** select → **Air Purifier** fan syncs automatically
+`climate` | Air conditioning control (power, mode, temperature, fan speed, swing)
 
 ## 🚀 Quick Start
 
@@ -88,7 +75,7 @@ Click the button below to open the configuration dialog:
 
 Follow the setup wizard:
 
-1. Enter your username
+1. Enter your email address
 2. Enter your password
 3. Click Submit
 
@@ -115,99 +102,24 @@ You can also **Reconfigure** your credentials anytime without removing the integ
 
 ### Step 4: Start Using!
 
-The integration creates several entities for your air purifier:
+The integration creates climate entities for each of your AC units:
 
-- **Sensors**: Air quality index, PM2.5 levels, filter life remaining, total runtime
-- **Binary Sensors**: API connection status, filter replacement alert
-- **Switches**: Child lock, LED display control
-- **Select**: Fan speed (Low/Medium/High/Auto)
-- **Number**: Target humidity (30-80%)
-- **Button**: Reset filter timer
-- **Fan**: Air purifier fan control
+- **Climate**: Full AC control — power, mode (heat/cool/dry/fan/auto), target temperature, fan speed, swing direction
+- Current room temperature is shown as the current temperature on each climate entity
 
 Find all entities in **Settings** → **Devices & Services** → **Shirokuma AC (aircloudhome) Integration** → click on the device.
 
 ## Available Entities
 
-### Sensors
+### Climate
 
-- **Air Quality Index (AQI)**: Real-time air quality measurement (0-500 scale)
-  - Includes air quality category (Good/Moderate/Unhealthy/etc.)
-  - Health recommendations based on current AQI
-- **PM2.5**: Fine particulate matter concentration in µg/m³
-- **Filter Life Remaining** (Diagnostic): Shows remaining filter life as percentage
-- **Total Runtime** (Diagnostic): Total operating hours of the device
+One climate entity is created per AC unit:
 
-### Binary Sensors
-
-- **API Connection**: Shows whether the connection to the API is active
-  - On: Connected and receiving data
-  - Off: Connection lost or authentication failed
-  - Shows update interval and API endpoint information
-- **Filter Replacement Needed**: Alerts when filter needs replacement
-  - Shows estimated days remaining
-  - Turns on when filter life is low
-
-### Switches
-
-- **Child Lock**: Prevents accidental button presses on the device
-  - Icon changes based on state (locked/unlocked)
-- **LED Display**: Enable/disable the LED display
-  - Disabled by default - enable in entity settings if needed
-
-### Select
-
-- **Fan Speed**: Choose from Low, Medium, High, or Auto
-  - Icon changes dynamically based on selected speed
-  - Auto mode adjusts speed based on air quality
-  - Syncs bidirectionally with the Air Purifier fan entity
-
-### Number
-
-- **Target Humidity**: Set desired humidity level (30-80%)
-  - Adjustable in 5% increments
-  - Displayed as a slider in the UI
-
-### Button
-
-- **Reset Filter Timer**: Reset the filter life to 100%
-  - Press to reset after replacing the filter
-  - Instantly updates the Filter Life Remaining sensor
-
-### Fan
-
-- **Air Purifier**: Control the air purifier fan speed and power
-  - Three speed levels: Low, Medium, High
-  - Syncs bidirectionally with the Fan Speed select entity
-  - Turn on/off functionality
-
-## Custom Services
-
-The integration provides services for advanced automation:
-
-### `aircloudhome.example_action`
-
-Perform a custom action (customize this for your needs).
-
-**Example:**
-
-```yaml
-service: aircloudhome.example_action
-data:
-  # Add your parameters here
-```
-
-### `aircloudhome.reload_data`
-
-Manually refresh data from the API without waiting for the update interval.
-
-**Example:**
-
-```yaml
-service: aircloudhome.reload_data
-```
-
-Use these services in automations or scripts for more control.
+- **HVAC Modes**: Heat, Cool, Dry, Fan Only, Auto, Off
+- **Temperature**: Set target temperature (16–32°C, 0.5°C increments)
+- **Fan Speed**: auto, level_1, level_2, level_3, level_4, level_5
+- **Swing Mode**: off, vertical, horizontal, both, on (auto)
+- **Current Temperature**: Room temperature reported by the unit
 
 ## Configuration Options
 
@@ -215,7 +127,7 @@ Use these services in automations or scripts for more control.
 
 Name | Required | Description
 -- | -- | --
-Username | Yes | Your account username
+Email | Yes | Your AirCloud Home account email address
 Password | Yes | Your account password
 
 ### After Setup (Options)
@@ -224,8 +136,10 @@ You can change these anytime by clicking **Configure**:
 
 Name | Default | Description
 -- | -- | --
-Update Interval | 1 hour | How often to refresh data
+Update Interval | 5 minutes | How often to poll the AirCloud Home cloud API (1–1440 minutes)
 Enable Debugging | Off | Enable extra debug logging
+
+> **Note:** State updates are not real-time. The integration polls the cloud API at the configured interval. For most use cases the default 5-minute interval is sufficient. Setting a shorter interval increases API requests; setting a longer interval reduces responsiveness.
 
 ## Troubleshooting
 
@@ -238,7 +152,7 @@ If your credentials expire or change, Home Assistant will automatically prompt y
 1. Go to **Settings** → **Devices & Services**
 2. Look for **"Action Required"** or **"Configuration Required"** message on the integration
 3. Click **"Reconfigure"** or follow the prompt
-4. Enter your updated credentials
+4. Enter your updated email and password
 5. Click Submit
 
 The integration will automatically resume normal operation with the new credentials.
@@ -250,18 +164,8 @@ You can also update credentials at any time without waiting for an error:
 1. Go to **Settings** → **Devices & Services**
 2. Find **Shirokuma AC (aircloudhome) Integration**
 3. Click the **3 dots menu** → **Reconfigure**
-4. Enter new username/password
+4. Enter new email/password
 5. Click Submit
-
-#### Connection Status
-
-Monitor your connection status with the **API Connection** binary sensor:
-
-- **On** (Connected): Integration is receiving data normally
-- **Off** (Disconnected): Connection lost or authentication failed
-  - Check the binary sensor attributes for diagnostic information
-  - Verify credentials if authentication failed
-  - Check network connectivity
 
 ### Enable Debug Logging
 
@@ -280,19 +184,17 @@ logger:
 
 If you receive authentication errors:
 
-1. Verify your username and password are correct
+1. Verify your email and password are correct
 2. Check that your account has the necessary permissions
 3. Wait for the automatic reauthentication prompt, or manually reconfigure
-4. Check the API Connection binary sensor for status
 
 #### Device Not Responding
 
-If your device is not responding:
+If your AC unit shows as unavailable:
 
-1. Check the **API Connection** binary sensor - it should be "On"
-2. Check your network connection
-3. Verify the device is powered on
-4. Check the integration diagnostics (Settings → Devices & Services → Shirokuma AC (aircloudhome) Integration → 3 dots → Download diagnostics)
+1. Check your internet connection (this integration uses the AirCloud Home cloud API)
+2. Verify the AC unit is powered on and connected
+3. Try reloading the integration
 
 ## 🤝 Contributing
 

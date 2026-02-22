@@ -6,7 +6,7 @@ This guide will help you install and set up the Shirokuma AC (aircloudhome) Inte
 
 - Home Assistant 2025.7.0 or newer
 - HACS (Home Assistant Community Store) installed
-- Network connectivity to [external service/device]
+- AirCloud Home account (email and password)
 
 ## Installation
 
@@ -39,24 +39,14 @@ After installation, add the integration:
 3. Search for "Shirokuma AC (aircloudhome) Integration"
 4. Follow the configuration steps:
 
-### Step 1: Connection Information
+### Step 1: Credentials
 
-Enter the required connection details:
+Enter your AirCloud Home account details:
 
-- **Host/IP Address:** The hostname or IP address of your device/service
-- **API Key/Token:** Your authentication credentials (if applicable)
-- **Port:** Connection port (default: 8080)
+- **Email:** Your AirCloud Home account email address
+- **Password:** Your account password
 
-Click **Submit** to test the connection.
-
-### Step 2: Configuration Options
-
-Configure optional settings:
-
-- **Update Interval:** How often to poll for updates (default: 5 minutes)
-- **Name:** Friendly name for this integration instance
-
-Click **Submit** to complete setup.
+Click **Submit** to verify credentials.
 
 ## What Gets Created
 
@@ -64,31 +54,21 @@ After successful setup, the integration creates:
 
 ### Devices
 
-- **Device Name:** Main device representing your connected service/hardware
-  - Model information
-  - Software version
-  - Configuration URL (link to device web interface)
+One device per AC unit, identified by its `id` (numeric device ID). Each device shows:
+
+- Manufacturer (from the unit's model field)
+- Serial number
+- Hardware version (`vendorThingId`)
 
 ### Entities
 
-The following entities are automatically created:
+#### Climate
 
-#### Sensors
-
-- `sensor.<device_name>_<sensor_name>` - Descriptive sensor measurements
-- More sensors as applicable to your setup
-
-#### Binary Sensors
-
-- `binary_sensor.<device_name>_<sensor_name>` - On/off status indicators
-
-#### Switches
-
-- `switch.<device_name>_<switch_name>` - Controllable on/off switches
-
-#### Other Platforms
-
-Additional entities may be created depending on your device capabilities.
+- `climate.<room_name>` — Full AC control per unit
+  - HVAC modes: heat, cool, dry, fan only, auto, off
+  - Temperature range: 16–32°C (0.5°C increments)
+  - Fan speeds: auto, level_1, level_2, level_3, level_4, level_5
+  - Swing modes: off, vertical, horizontal, both, on
 
 ## First Steps
 
@@ -101,68 +81,68 @@ Add entities to your dashboard:
 3. Choose card type (e.g., "Entities", "Glance")
 4. Select entities from "Shirokuma AC (aircloudhome) Integration"
 
-Example entities card:
+Example climate card:
 
 ```yaml
-type: entities
-title: Shirokuma AC (aircloudhome) Integration
-entities:
-  - sensor.device_name_sensor
-  - binary_sensor.device_name_connectivity
-  - switch.device_name_switch
+type: thermostat
+entity: climate.living_room
 ```
 
 ### Automations
 
 Use the integration in automations:
 
-**Example - Trigger on sensor change:**
+**Example - Set AC temperature at a schedule:**
 
 ```yaml
 automation:
-  - alias: "React to sensor value"
-    trigger:
-      - trigger: state
-        entity_id: sensor.device_name_sensor
-    action:
-      - action: notify.notify
-        data:
-          message: "Sensor changed to {{ trigger.to_state.state }}"
-```
-
-**Example - Control switch based on time:**
-
-```yaml
-automation:
-  - alias: "Turn on in morning"
+  - alias: "Set AC to 26°C at night"
     trigger:
       - trigger: time
-        at: "07:00:00"
+        at: "22:00:00"
     action:
-      - action: switch.turn_on
+      - action: climate.set_temperature
         target:
-          entity_id: switch.device_name_switch
+          entity_id: climate.living_room
+        data:
+          temperature: 26
+```
+
+**Example - Turn off all AC units when leaving:**
+
+```yaml
+automation:
+  - alias: "Turn off AC on leaving"
+    trigger:
+      - trigger: state
+        entity_id: person.my_person
+        to: not_home
+    action:
+      - action: climate.turn_off
+        target:
+          entity_id: climate.living_room
 ```
 
 ## Troubleshooting
 
 ### Connection Failed
 
-If setup fails with connection errors:
+If setup fails with authentication errors:
 
-1. Verify the host/IP address is correct and reachable
-2. Check that the API key/token is valid
-3. Ensure no firewall is blocking the connection
+1. Verify your email address is correct
+2. Check that your password is correct
+3. Ensure your AirCloud Home account is active
 4. Check Home Assistant logs for detailed error messages
 
 ### Entities Not Updating
 
 If entities show "Unavailable" or don't update:
 
-1. Check that the device/service is online
-2. Verify API credentials haven't expired
-3. Review logs: **Settings** → **System** → **Logs**
-4. Try reloading the integration
+1. Check that the AC unit is powered on and online
+2. Verify internet connectivity (this integration uses the AirCloud Home cloud API)
+3. Verify credentials haven't expired
+4. Review logs: **Settings** → **System** → **Logs**
+5. Try reloading the integration
 
 ### Debug Logging
 
@@ -180,7 +160,6 @@ Add this to `configuration.yaml`, restart, and reproduce the issue. Check logs f
 ## Next Steps
 
 - See [CONFIGURATION.md](./CONFIGURATION.md) for detailed configuration options
-- See [EXAMPLES.md](./EXAMPLES.md) for more automation examples
 - Report issues at [GitHub Issues](https://github.com/nogic1008/ha_aircloudhome/issues)
 
 ## Support
