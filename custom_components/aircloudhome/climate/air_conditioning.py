@@ -31,6 +31,9 @@ CLIMATE_ENTITY_DESCRIPTION = EntityDescription(
 # Preset mode for DRY_COOL — a device-specific mode that has no direct HVACMode equivalent
 PRESET_DRY_COOL = "dry_cool"
 
+# Modes in which a humidity setpoint is accepted by the API
+_HUMIDITY_MODES: frozenset[str] = frozenset({"DRY", "DRY_COOL"})
+
 # Map API modes to Home Assistant HVAC modes
 API_MODE_TO_HVAC_MODE = {
     "HEATING": HVACMode.HEAT,
@@ -266,16 +269,25 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
             int(round(target_humidity_raw)) if isinstance(target_humidity_raw, (int, float)) else None
         )
 
+        effective_power = power or current_power
+        effective_mode = mode or current_mode
+        # humidity is only valid for DRY / DRY_COOL modes; sending it in other modes causes a 400 error
+        resolved_humidity = (
+            (humidity if humidity is not None else target_humidity_setpoint)
+            if effective_power == "ON" and effective_mode in _HUMIDITY_MODES
+            else None
+        )
+
         try:
             await self.coordinator.config_entry.runtime_data.client.async_control_device(
                 rac_id=self._device["id"],
                 family_id=self._device["familyId"],
-                power=power or current_power,
-                mode=mode or current_mode,
+                power=effective_power,
+                mode=effective_mode,
                 fan_speed=fan_speed or current_fan_speed,
                 fan_swing=fan_swing or current_fan_swing,
                 idu_temperature=idu_temperature if idu_temperature is not None else current_temp,
-                humidity=humidity if humidity is not None else target_humidity_setpoint,
+                humidity=resolved_humidity,
             )
 
             # Update local state immediately for responsiveness

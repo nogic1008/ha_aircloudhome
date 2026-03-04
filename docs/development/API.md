@@ -223,8 +223,7 @@ Updates the operating state of an AC unit. All five required fields must be incl
   "mode": "HEATING",
   "fanSpeed": "AUTO",
   "fanSwing": "OFF",
-  "iduTemperature": 21.5,
-  "humidity": 50
+  "iduTemperature": 21.5
 }
 ```
 
@@ -242,7 +241,7 @@ Updates the operating state of an AC unit. All five required fields must be incl
 
 | Field | Values | Description |
 | ----- | ------ | ----------- |
-| `humidity` | integer (40–60, step 5) | Target humidity (%) |
+| `humidity` | integer (40–60, step 5) | Target humidity (%). **Only valid when `mode` is `DRY` or `DRY_COOL`.** Including this field in any other mode returns `400 Bad Request`. |
 
 **Response — 200 OK:**
 
