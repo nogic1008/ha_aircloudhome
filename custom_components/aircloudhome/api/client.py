@@ -240,7 +240,7 @@ class AirCloudHomeApiClient:
             power: "ON" or "OFF".
             mode: "HEATING", "COOLING", "FAN", "DRY", "DRY_COOL", "AUTO", or "UNKNOWN".
             fan_speed: "AUTO", "LV1", "LV2", "LV3", "LV4", or "LV5".
-            fan_swing: "AUTO", "OFF", "VERTICAL", "HORIZONTAL", or "ALL".
+            fan_swing: "AUTO", "OFF", "VERTICAL", "HORIZONTAL", or "BOTH".
             idu_temperature: Target temperature (0.5 degree increments, 16-32 range).
             humidity: Target humidity (5% increments, 40-60 range).
 

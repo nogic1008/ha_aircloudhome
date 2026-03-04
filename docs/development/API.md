@@ -200,7 +200,7 @@ Returns all AC units (indoor units / IDUs) registered to a family group.
 | `OFF` | Swing off |
 | `VERTICAL` | Vertical sweep |
 | `HORIZONTAL` | Horizontal sweep |
-| `ALL` | All directions |
+| `BOTH` | All directions |
 
 ---
 
@@ -235,7 +235,7 @@ Updates the operating state of an AC unit. All five required fields must be incl
 | `power` | `"ON"` \| `"OFF"` | Power state |
 | `mode` | `HEATING` \| `COOLING` \| `FAN` \| `DRY` \| `DRY_COOL` \| `AUTO` \| `UNKNOWN` | Operating mode |
 | `fanSpeed` | `AUTO` \| `LV1` \| `LV2` \| `LV3` \| `LV4` \| `LV5` | Fan speed |
-| `fanSwing` | `AUTO` \| `OFF` \| `VERTICAL` \| `HORIZONTAL` \| `ALL` | Swing direction |
+| `fanSwing` | `AUTO` \| `OFF` \| `VERTICAL` \| `HORIZONTAL` \| `BOTH` | Swing direction |
 | `iduTemperature` | float (16–32, step 0.5) | Target temperature (°C) |
 
 **Optional fields:**
