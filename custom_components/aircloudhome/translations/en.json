@@ -56,5 +56,27 @@
     "update_failed": {
       "message": "Failed to update data from the server."
     }
+  },
+  "entity": {
+    "climate": {
+      "room_air_conditioner": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "level_1": "1",
+              "level_2": "2",
+              "level_3": "3",
+              "level_4": "4",
+              "level_5": "5"
+            }
+          },
+          "preset_mode": {
+            "state": {
+              "dry_cool": "Dry Cool"
+            }
+          }
+        }
+      }
+    }
   }
 }

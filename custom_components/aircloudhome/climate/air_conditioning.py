@@ -25,7 +25,8 @@ from homeassistant.helpers.entity import EntityDescription
 # Climate entity description for AC units
 CLIMATE_ENTITY_DESCRIPTION = EntityDescription(
     key="climate",
-    name="Air Conditioner",
+    name="Room Air Conditioner",
+    translation_key="room_air_conditioner",
 )
 
 

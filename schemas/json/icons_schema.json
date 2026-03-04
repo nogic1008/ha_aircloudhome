@@ -43,6 +43,23 @@
               "additionalProperties": {
                 "$ref": "#/definitions/icon"
               }
+            },
+            "state_attributes": {
+              "type": "object",
+              "description": "Mapping of attribute names to their state icon definitions.",
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "state": {
+                    "type": "object",
+                    "description": "Mapping of attribute values to icons.",
+                    "additionalProperties": {
+                      "$ref": "#/definitions/icon"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
             }
           },
           "additionalProperties": false
