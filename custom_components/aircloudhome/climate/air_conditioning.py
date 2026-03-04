@@ -6,18 +6,18 @@ from typing import Any
 
 from custom_components.aircloudhome.coordinator import AirCloudHomeDataUpdateCoordinator
 from custom_components.aircloudhome.entity import AirCloudHomeEntity
-from homeassistant.components.climate import ClimateEntity
-from homeassistant.components.climate.const import (
-    FAN_AUTO,
-    PRESET_NONE,
-    SWING_BOTH,
-    SWING_HORIZONTAL,
-    SWING_OFF,
-    SWING_ON,
-    SWING_VERTICAL,
-    ClimateEntityFeature,
-    HVACMode,
+from custom_components.aircloudhome.entity_utils.climate_mappings import (
+    API_FAN_SPEED_TO_HA,
+    API_MODE_TO_HVAC_MODE,
+    API_SWING_TO_HA,
+    HA_FAN_SPEED_TO_API,
+    HA_SWING_TO_API,
+    HUMIDITY_MODES,
+    HVAC_MODE_TO_API_MODE,
+    PRESET_DRY_COOL,
 )
+from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate.const import PRESET_NONE, ClimateEntityFeature, HVACMode
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
@@ -27,69 +27,6 @@ CLIMATE_ENTITY_DESCRIPTION = EntityDescription(
     key="climate",
     name="Air Conditioner",
 )
-
-# Preset mode for DRY_COOL — a device-specific mode that has no direct HVACMode equivalent
-PRESET_DRY_COOL = "dry_cool"
-
-# Modes in which a humidity setpoint is accepted by the API
-_HUMIDITY_MODES: frozenset[str] = frozenset({"DRY", "DRY_COOL"})
-
-# Map API modes to Home Assistant HVAC modes
-API_MODE_TO_HVAC_MODE = {
-    "HEATING": HVACMode.HEAT,
-    "COOLING": HVACMode.COOL,
-    "DRY": HVACMode.DRY,
-    "FAN": HVACMode.FAN_ONLY,
-    "AUTO": HVACMode.AUTO,
-    "DRY_COOL": HVACMode.DRY,  # Dry Cool - reported as DRY mode; distinguished via preset
-    "UNKNOWN": HVACMode.OFF,
-}
-
-# Map Home Assistant HVAC modes to API modes
-HVAC_MODE_TO_API_MODE = {
-    HVACMode.HEAT: "HEATING",
-    HVACMode.COOL: "COOLING",
-    HVACMode.DRY: "DRY",
-    HVACMode.FAN_ONLY: "FAN",
-    HVACMode.AUTO: "AUTO",
-    HVACMode.OFF: "OFF",
-}
-
-# Fan speed mappings
-API_FAN_SPEED_TO_HA = {
-    "AUTO": FAN_AUTO,
-    "LV1": "level_1",
-    "LV2": "level_2",
-    "LV3": "level_3",
-    "LV4": "level_4",
-    "LV5": "level_5",
-}
-
-HA_FAN_SPEED_TO_API = {
-    FAN_AUTO: "AUTO",
-    "level_1": "LV1",
-    "level_2": "LV2",
-    "level_3": "LV3",
-    "level_4": "LV4",
-    "level_5": "LV5",
-}
-
-# Fan swing mappings
-API_SWING_TO_HA = {
-    "AUTO": SWING_ON,
-    "OFF": SWING_OFF,
-    "VERTICAL": SWING_VERTICAL,
-    "HORIZONTAL": SWING_HORIZONTAL,
-    "BOTH": SWING_BOTH,
-}
-
-HA_SWING_TO_API = {
-    SWING_ON: "AUTO",
-    SWING_OFF: "OFF",
-    SWING_VERTICAL: "VERTICAL",
-    SWING_HORIZONTAL: "HORIZONTAL",
-    SWING_BOTH: "BOTH",
-}
 
 
 class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
@@ -115,8 +52,8 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
         HVACMode.AUTO,
         HVACMode.OFF,
     ]
-    _attr_fan_modes = [FAN_AUTO, "level_1", "level_2", "level_3", "level_4", "level_5"]
-    _attr_swing_modes = [SWING_OFF, SWING_VERTICAL, SWING_HORIZONTAL, SWING_BOTH, SWING_ON]
+    _attr_fan_modes = list(API_FAN_SPEED_TO_HA.values())
+    _attr_swing_modes = list(API_SWING_TO_HA.values())
     _attr_preset_modes = [PRESET_NONE, PRESET_DRY_COOL]
 
     def __init__(
@@ -274,7 +211,7 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
         # humidity is only valid for DRY / DRY_COOL modes; sending it in other modes causes a 400 error
         resolved_humidity = (
             (humidity if humidity is not None else target_humidity_setpoint)
-            if effective_power == "ON" and effective_mode in _HUMIDITY_MODES
+            if effective_power == "ON" and effective_mode in HUMIDITY_MODES
             else None
         )
 
