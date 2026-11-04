@@ -26,6 +26,7 @@ Uncomment and customize these badges if you want to use them:
 - **Reconfigurable**: Change credentials anytime without removing the integration
 - **Options Flow**: Adjust settings like update interval after setup
 - **Multiple Units**: Supports multiple AC units across multiple family groups
+- **Japan and Europe / Global Accounts**: Works with both the Shirokuma-kun (Japan) and airCloud Go (Europe / global) clouds
 
 > **🛠️ Tested hardware:** Hitachi RAS-X40L2. Other **room air conditioners (RAC)** connected via AirCloud Home should work. Packaged air conditioners (PAC) use a separate API and are not supported.
 
@@ -63,11 +64,14 @@ If you prefer not to use HACS:
 
 </details>
 
-### Step 1.5: Initial Setup with Shirokuma-kun App
+### Step 1.5: Initial Setup with the Mobile App
 
-**Important:** Before configuring this integration in Home Assistant, you must complete initial setup using the official **[Shirokuma-kun App (白くまくんアプリ)](https://kadenfan.hitachi.co.jp/ra/app2/)**:
+**Important:** Before configuring this integration in Home Assistant, you must complete initial setup using the official Hitachi app for your region:
 
-1. **Download and install** the Shirokuma-kun App on your smartphone (iOS/Android)
+- **Japan:** **[Shirokuma-kun App (白くまくんアプリ)](https://kadenfan.hitachi.co.jp/ra/app2/)**
+- **Europe and other countries:** **[airCloud Go app](https://aircloudhome.hitachiaircon.com)** (formerly airCloud Home)
+
+1. **Download and install** the app on your smartphone (iOS/Android)
 2. **Create an account** - Sign up for an AirCloud Home account using your email
 3. **Register your AC unit** - Add your air conditioner to your account in the app
 
@@ -85,9 +89,10 @@ Click the button below to open the configuration dialog:
 
 Follow the setup wizard:
 
-1. Enter your email address
-2. Enter your password
-3. Click Submit
+1. Select your region: **Japan** (Shirokuma-kun app) or **Europe / global** (airCloud Go app)
+2. Enter your email address
+3. Enter your password
+4. Click Submit
 
 That's it! The integration will start loading your data.
 
@@ -108,7 +113,7 @@ After setup, you can adjust options:
    - Update interval (how often to refresh data)
    - Enable debug logging
 
-You can also **Reconfigure** your credentials anytime without removing the integration.
+You can also **Reconfigure** your credentials and region anytime without removing the integration.
 
 ### Step 4: Start Using!
 

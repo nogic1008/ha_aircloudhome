@@ -2,7 +2,28 @@
 
 This document describes the AirCloud Home cloud API endpoints used by this integration.
 
-**Base URL:** `https://api-kuma.aircloudhome.com`
+## Regions and base URLs
+
+AirCloud Home runs two independent clouds. An account exists in only one of them, depending on the mobile app it was created with, and the integration stores the region in the config entry (`region`).
+
+| Region (`region`) | Mobile app | Base URL |
+| ----------------- | ---------- | -------- |
+| `japan` (default) | Shirokuma-kun app (白くまくんアプリ) | `https://api-kuma.aircloudhome.com` |
+| `global` | airCloud Go (formerly airCloud Home), Europe and other countries | `https://api-global-prod.aircloudhome.com` |
+
+All endpoints below are identical in both regions unless noted. Entries created before region support have no `region` value and use the Japan API.
+
+### Common request headers
+
+Every request sends the same headers as the mobile apps:
+
+```text
+Accept: application/json
+Content-Type: application/json; charset=UTF-8
+User-Agent: okhttp/4.2.2
+```
+
+Without them the global API answers `idu-list` with `403 {"error":"FORBIDDEN","message":"Access Denied"}`, even with a valid access token.
 
 > **Tested hardware:** API behaviour documented here was verified against a **Hitachi RAS-X40L2**. Other **room air conditioners (RAC)** connected via AirCloud Home should be compatible. Packaged air conditioners (PAC) use a separate API and are out of scope for this integration.
 
@@ -152,6 +173,11 @@ Returns all AC units (indoor units / IDUs) registered to a family group.
   }
 ]
 ```
+
+**Payload normalization:** the client (`normalize_device_list` in `api/client.py`) makes payloads of both regions look the same before entities see them:
+
+- `humidity` outside 40–60 is removed: the unit has no humidity control. The global API reports `2147483647` for these units.
+- Masked serial numbers such as `XXXX-XXXX-XXXX` (global API) are removed.
 
 **Key fields:**
 

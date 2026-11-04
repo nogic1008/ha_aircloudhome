@@ -4,11 +4,16 @@ This document describes all configuration options and settings available in the 
 
 ## Prerequisites
 
-### Initial Setup with Shirokuma-kun App
+### Initial Setup with the Mobile App
 
-Before configuring this integration in Home Assistant, you must perform initial setup using the **[Shirokuma-kun App (白くまくんアプリ)](https://kadenfan.hitachi.co.jp/ra/app2/)**:
+Before configuring this integration in Home Assistant, you must perform initial setup using the official Hitachi app for your region:
 
-1. **User Registration:** Create an AirCloud Home account using the Shirokuma-kun App
+- **Japan:** **[Shirokuma-kun App (白くまくんアプリ)](https://kadenfan.hitachi.co.jp/ra/app2/)**
+- **Europe and other countries:** **[airCloud Go app](https://aircloudhome.hitachiaircon.com)** (formerly airCloud Home)
+
+Then:
+
+1. **User Registration:** Create an AirCloud Home account using the app
 2. **Device Registration:** Register your AC unit in the app
 
 Without completing these steps, the Home Assistant integration will not be able to access your devices.
@@ -23,6 +28,7 @@ These options are configured during initial setup via the Home Assistant UI.
 
 | Option | Type | Required | Description |
 |--------|------|----------|-------------|
+| **Region** | choice | Yes | **Japan** for Shirokuma-kun app accounts (default), **Europe / global** for airCloud Go accounts |
 | **Email** | string | Yes | Your AirCloud Home account email address |
 | **Password** | string | Yes | Your account password |
 
