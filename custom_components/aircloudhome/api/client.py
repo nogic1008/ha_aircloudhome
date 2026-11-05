@@ -41,6 +41,19 @@ class AirCloudHomeApiClientAuthenticationError(
     """Exception to indicate an authentication error with the API."""
 
 
+class AirCloudHomeApiClientAccountLockedError(
+    AirCloudHomeApiClientError,
+):
+    """
+    Exception to indicate the account is temporarily locked (HTTP 423).
+
+    The cloud answers ``423 {"errorState": "SOFT_LOCK"}`` after several failed
+    sign-ins, even for the correct password. Deliberately not an
+    authentication error: starting a reauth flow would only invite more
+    sign-in attempts and keep the account locked.
+    """
+
+
 def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     """
     Verify that the API response is valid.
@@ -52,6 +65,7 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
 
     Raises:
         AirCloudHomeApiClientAuthenticationError: For 401/403 errors.
+        AirCloudHomeApiClientAccountLockedError: For 423 errors.
         aiohttp.ClientResponseError: For other HTTP errors.
 
     """
@@ -60,6 +74,9 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
         raise AirCloudHomeApiClientAuthenticationError(
             msg,
         )
+    if response.status == 423:
+        msg = "Account temporarily locked after too many failed sign-ins"
+        raise AirCloudHomeApiClientAccountLockedError(msg)
     response.raise_for_status()
 
 

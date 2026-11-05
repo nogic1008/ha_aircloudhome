@@ -7,7 +7,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from custom_components.aircloudhome.api import AirCloudHomeApiClient, AirCloudHomeApiClientAuthenticationError
+from custom_components.aircloudhome.api import (
+    AirCloudHomeApiClient,
+    AirCloudHomeApiClientAccountLockedError,
+    AirCloudHomeApiClientAuthenticationError,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -31,6 +35,18 @@ async def test_sign_in_with_invalid_credentials_raises_auth_error() -> None:
         with pytest.raises(AirCloudHomeApiClientAuthenticationError):
             await client.async_sign_in()
 
+    assert session.request.await_count == 1
+
+
+async def test_sign_in_on_locked_account_raises_account_locked_error() -> None:
+    """A 423 SOFT_LOCK is reported as a lock, not as wrong credentials, without retrying."""
+    session = _session(423, {"errorState": "SOFT_LOCK"})
+    client = AirCloudHomeApiClient(email="user@example.com", password="secret", session=session)
+
+    with pytest.raises(AirCloudHomeApiClientAccountLockedError) as exc_info:
+        await client.async_sign_in()
+
+    assert not isinstance(exc_info.value, AirCloudHomeApiClientAuthenticationError)
     assert session.request.await_count == 1
 
 
