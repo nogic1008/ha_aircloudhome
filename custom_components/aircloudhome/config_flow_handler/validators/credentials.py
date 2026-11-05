@@ -13,14 +13,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from custom_components.aircloudhome.api import AirCloudHomeApiClient
+from custom_components.aircloudhome.api import AirCloudHomeApiClient, AirCloudHomeRegion
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
 
 
-async def validate_credentials(hass: HomeAssistant, email: str, password: str) -> None:
+async def validate_credentials(
+    hass: HomeAssistant,
+    email: str,
+    password: str,
+    region: AirCloudHomeRegion | str = AirCloudHomeRegion.JAPAN,
+) -> None:
     """
     Validate user credentials by testing API connection.
 
@@ -28,6 +33,7 @@ async def validate_credentials(hass: HomeAssistant, email: str, password: str) -
         hass: Home Assistant instance.
         email: The email to validate.
         password: The password to validate.
+        region: The cloud region the account belongs to.
 
     Raises:
         AirCloudHomeApiClientAuthenticationError: If credentials are invalid.
@@ -39,6 +45,7 @@ async def validate_credentials(hass: HomeAssistant, email: str, password: str) -
         email=email,
         password=password,
         session=async_create_clientsession(hass),
+        region=region,
     )
     await client.async_sign_in()  # May raise authentication/communication errors
 

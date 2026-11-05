@@ -4,15 +4,23 @@
       "user": {
         "description": "設定に関するヘルプが必要な場合は、[ドキュメント]({documentation_url})をご覧ください。",
         "data": {
+          "region": "リージョン",
           "email": "メールアドレス",
           "password": "パスワード"
+        },
+        "data_description": {
+          "region": "アカウントを作成したアプリのクラウドを選択してください。白くまくんアプリの場合は「日本」、airCloud Go アプリ（旧 airCloud Home）の場合は「ヨーロッパ / グローバル」を選択します。"
         }
       },
       "reconfigure": {
         "description": "このインテグレーションの認証情報を更新してください。",
         "data": {
+          "region": "リージョン",
           "email": "メールアドレス",
           "password": "パスワード"
+        },
+        "data_description": {
+          "region": "アカウントを作成したアプリのクラウドを選択してください。白くまくんアプリの場合は「日本」、airCloud Go アプリ（旧 airCloud Home）の場合は「ヨーロッパ / グローバル」を選択します。"
         }
       },
       "reauth_confirm": {
@@ -76,6 +84,14 @@
             }
           }
         }
+      }
+    }
+  },
+  "selector": {
+    "region": {
+      "options": {
+        "japan": "日本（白くまくんアプリ）",
+        "global": "ヨーロッパ / グローバル（airCloud Go アプリ）"
       }
     }
   }

@@ -110,6 +110,27 @@ Each decision is documented with:
 
 ---
 
+### Support Both AirCloud Home Regions via a Stored Region
+
+**Date:** 2026-11-04
+
+**Context:** AirCloud Home has a Japan cloud (`api-kuma`, Shirokuma-kun app) and a Europe / global cloud (`api-global-prod`, airCloud Go app). Accounts exist in only one of them. The two APIs share the same endpoints but differ in required headers and some payload fields.
+
+**Decision:** Store the region in the config entry (`region`, chosen in the setup and reconfigure forms) and pass it to the API client, which picks the base URL. Absorb payload differences in the API layer (`normalize_device_list`) so the coordinator and entities stay region-agnostic.
+
+**Rationale:**
+
+- Explicit choice is predictable. Auto-detection would need failed sign-in attempts against the wrong cloud.
+- Defaulting to Japan keeps existing entries working without a config entry migration.
+- Normalizing in one place keeps region checks out of entity code.
+
+**Consequences:**
+
+- Users must pick the right region; the form explains which app maps to which region.
+- New region-specific quirks belong in `api/client.py`, not in entities.
+
+---
+
 ## Future Considerations
 
 ### State Restoration
