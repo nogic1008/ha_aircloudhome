@@ -54,6 +54,17 @@ class AirCloudHomeApiClientAccountLockedError(
     """
 
 
+# Request body fields that must never reach the log (the sign-in body).
+_REDACTED_KEYS = frozenset({"email", "password"})
+
+
+def _redact(data: dict | None) -> dict | None:
+    """Return ``data`` with credentials masked, for debug logging."""
+    if not data:
+        return data
+    return {key: "**REDACTED**" if key in _REDACTED_KEYS else value for key, value in data.items()}
+
+
 def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     """
     Verify that the API response is valid.
@@ -330,7 +341,7 @@ class AirCloudHomeApiClient:
         """
         try:
             async with asyncio.timeout(10):
-                _LOGGER.debug("API %s %s body=%s", method.upper(), url, data)
+                _LOGGER.debug("API %s %s body=%s", method.upper(), url, _redact(data))
                 response = await self._session.request(
                     method=method,
                     url=url,

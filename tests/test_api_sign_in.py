@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -61,3 +62,16 @@ async def test_sign_in_stores_tokens() -> None:
     assert session.request.await_args.kwargs["json"] == {"email": "user@example.com", "password": "secret"}
     assert client._access_token == "access"  # noqa: SLF001
     assert client._refresh_token == "refresh"  # noqa: SLF001
+
+
+async def test_sign_in_does_not_log_credentials(caplog: pytest.LogCaptureFixture) -> None:
+    """Debug logs (often attached to issues) never contain the email or password."""
+    session = _session(200, {"token": "access", "refreshToken": "refresh"})
+    client = AirCloudHomeApiClient(email="user@example.com", password="s3cret-pass", session=session)
+
+    with caplog.at_level(logging.DEBUG, logger="custom_components.aircloudhome.api.client"):
+        await client.async_sign_in()
+
+    assert "/iam/auth/sign-in" in caplog.text
+    assert "user@example.com" not in caplog.text
+    assert "s3cret-pass" not in caplog.text
