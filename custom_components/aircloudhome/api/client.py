@@ -133,6 +133,10 @@ class AirCloudHomeApiClient:
             method="post",
             url=f"{self._BASE_URL}/iam/auth/sign-in",
             data=data,
+            # A 401 here means wrong credentials. Never treat it as an expired
+            # token: refreshing would sign in again while holding
+            # ``_refresh_lock`` and deadlock on the non-reentrant lock.
+            _is_retry=True,
         )
         self._store_tokens(response)
         return response
