@@ -25,6 +25,7 @@
       }
     },
     "error": {
+      "account_locked": "Too many failed sign-ins: the account is temporarily locked. Wait a while before trying again; every new attempt may extend the lock.",
       "auth": "Email/Password is wrong.",
       "connection": "Unable to connect to the server.",
       "unknown": "Unknown error occurred."

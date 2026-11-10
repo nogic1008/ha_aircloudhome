@@ -19,6 +19,11 @@ jobs:
   ruff:
     name: "Ruff"
     runs-on: "ubuntu-latest"
+    env:
+      # Use repository variable vars.HA_VERSION if set, otherwise fall back to the default.
+      # Set via: GitHub Settings > Secrets and variables > Variables > New repository variable
+      HA_VERSION: ${{ vars.HA_VERSION || '2026.4.3' }}
+
     steps:
       - name: Checkout the repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -26,7 +31,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
-          python-version: "3.13"
+          python-version: "3.14"
 
       - name: Install uv
         uses: astral-sh/setup-uv@5a095e7a2014a4212f075830d4f7277575a9d098 # v7.3.1
@@ -35,22 +40,15 @@ jobs:
           enable-cache: true
           cache-dependency-glob: "**/requirements*.txt"
 
-      - name: Get Home Assistant version
-        id: ha_version
-        run: |
-          HA_VERSION=$(grep '"homeassistant"' hacs.json | head -1 | sed 's/.*"homeassistant"\s*:\s*"\([^"]*\)".*/\1/')
-          echo "HA_VERSION=${HA_VERSION}" >> $GITHUB_OUTPUT
-          echo "Home Assistant version: ${HA_VERSION}"
-
       - name: Cache Home Assistant installation
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: |
             .local/ha-venv
-          key: ha-venv-${{ runner.os }}-py313-ha${{ steps.ha_version.outputs.HA_VERSION }}-${{ hashFiles('**/requirements*.txt') }}
+          key: ha-venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-ha${{ env.HA_VERSION }}-${{ hashFiles('**/requirements*.txt') }}
           restore-keys: |
-            ha-venv-${{ runner.os }}-py313-ha${{ steps.ha_version.outputs.HA_VERSION }}-
-            ha-venv-${{ runner.os }}-py313-
+            ha-venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-ha${{ env.HA_VERSION }}-
+            ha-venv-${{ runner.os }}-py${{ steps.setup-python.outputs.python-version }}-
 
       - name: Install requirements
         run: script/setup/bootstrap
