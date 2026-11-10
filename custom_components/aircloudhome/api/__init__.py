@@ -9,16 +9,19 @@ Architecture:
 Exception hierarchy:
     AirCloudHomeApiClientError (base)
     ├── AirCloudHomeApiClientCommunicationError (network/timeout)
-    └── AirCloudHomeApiClientAuthenticationError (401/403)
+    ├── AirCloudHomeApiClientAuthenticationError (401/403)
+    └── AirCloudHomeApiClientAccountLockedError (423, too many failed sign-ins)
 
 Coordinator exception mapping:
     ApiClientAuthenticationError → ConfigEntryAuthFailed (triggers reauth)
     ApiClientCommunicationError → UpdateFailed (auto-retry)
+    ApiClientAccountLockedError → UpdateFailed (auto-retry, no reauth)
     ApiClientError             → UpdateFailed (auto-retry)
 """
 
 from .client import (
     AirCloudHomeApiClient,
+    AirCloudHomeApiClientAccountLockedError,
     AirCloudHomeApiClientAuthenticationError,
     AirCloudHomeApiClientCommunicationError,
     AirCloudHomeApiClientError,
@@ -26,6 +29,7 @@ from .client import (
 
 __all__ = [
     "AirCloudHomeApiClient",
+    "AirCloudHomeApiClientAccountLockedError",
     "AirCloudHomeApiClientAuthenticationError",
     "AirCloudHomeApiClientCommunicationError",
     "AirCloudHomeApiClientError",
