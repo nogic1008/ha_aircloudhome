@@ -4,14 +4,14 @@
       "user": {
         "description": "If you need help with the configuration have a look at the [documentation]({documentation_url}).",
         "data": {
-          "email": "Email",
+          "username": "Email",
           "password": "Password"
         }
       },
       "reconfigure": {
         "description": "Update the credentials for this integration.",
         "data": {
-          "email": "Email",
+          "username": "Email",
           "password": "Password"
         }
       },
@@ -19,7 +19,7 @@
         "title": "Reauthenticate Integration",
         "description": "The credentials for {email} are no longer valid. Please provide updated credentials to restore access.",
         "data": {
-          "email": "Email",
+          "username": "Email",
           "password": "Password"
         }
       }
