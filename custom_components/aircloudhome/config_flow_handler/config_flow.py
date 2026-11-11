@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 # Map exception types to error keys for user-facing messages
 ERROR_MAP = {
+    "AirCloudHomeApiClientAccountLockedError": "account_locked",
     "AirCloudHomeApiClientAuthenticationError": "auth",
     "AirCloudHomeApiClientCommunicationError": "connection",
 }

@@ -79,6 +79,30 @@ class AirCloudHomeApiClientAuthenticationError(
     """Exception to indicate an authentication error with the API."""
 
 
+class AirCloudHomeApiClientAccountLockedError(
+    AirCloudHomeApiClientError,
+):
+    """
+    Exception to indicate the account is temporarily locked (HTTP 423).
+
+    The cloud answers ``423 {"errorState": "SOFT_LOCK"}`` after several failed
+    sign-ins, even for the correct password. Deliberately not an
+    authentication error: starting a reauth flow would only invite more
+    sign-in attempts and keep the account locked.
+    """
+
+
+# Request body fields that must never reach the log (the sign-in body).
+_REDACTED_KEYS = frozenset({"email", "password"})
+
+
+def _redact(data: dict | None) -> dict | None:
+    """Return ``data`` with credentials masked, for debug logging."""
+    if not data:
+        return data
+    return {key: "**REDACTED**" if key in _REDACTED_KEYS else value for key, value in data.items()}
+
+
 def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
     """
     Verify that the API response is valid.
@@ -90,6 +114,7 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
 
     Raises:
         AirCloudHomeApiClientAuthenticationError: For 401/403 errors.
+        AirCloudHomeApiClientAccountLockedError: For 423 errors.
         aiohttp.ClientResponseError: For other HTTP errors.
 
     """
@@ -98,6 +123,9 @@ def _verify_response_or_raise(response: aiohttp.ClientResponse) -> None:
         raise AirCloudHomeApiClientAuthenticationError(
             msg,
         )
+    if response.status == 423:
+        msg = "Account temporarily locked after too many failed sign-ins"
+        raise AirCloudHomeApiClientAccountLockedError(msg)
     response.raise_for_status()
 
 
@@ -177,6 +205,10 @@ class AirCloudHomeApiClient:
             method="post",
             url=f"{self._base_url}/iam/auth/sign-in",
             data=data,
+            # A 401 here means wrong credentials. Never treat it as an expired
+            # token: refreshing would sign in again while holding
+            # ``_refresh_lock`` and deadlock on the non-reentrant lock.
+            _is_retry=True,
         )
         self._store_tokens(response)
         return response
@@ -354,7 +386,7 @@ class AirCloudHomeApiClient:
         """
         try:
             async with asyncio.timeout(10):
-                _LOGGER.debug("API %s %s body=%s", method.upper(), url, data)
+                _LOGGER.debug("API %s %s body=%s", method.upper(), url, _redact(data))
                 response = await self._session.request(
                     method=method,
                     url=url,
