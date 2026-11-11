@@ -5,7 +5,7 @@
         "description": "If you need help with the configuration have a look at the [documentation]({documentation_url}).",
         "data": {
           "region": "Region",
-          "email": "Email",
+          "username": "Email",
           "password": "Password"
         },
         "data_description": {
@@ -16,7 +16,7 @@
         "description": "Update the credentials for this integration.",
         "data": {
           "region": "Region",
-          "email": "Email",
+          "username": "Email",
           "password": "Password"
         },
         "data_description": {
@@ -27,7 +27,7 @@
         "title": "Reauthenticate Integration",
         "description": "The credentials for {email} are no longer valid. Please provide updated credentials to restore access.",
         "data": {
-          "email": "Email",
+          "username": "Email",
           "password": "Password"
         }
       }

@@ -226,13 +226,17 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=get_reauth_schema(entry.data.get(CONF_USERNAME, "")),
             errors=errors,
             description_placeholders={
-                "username": entry.data.get(CONF_USERNAME, ""),
+                "email": entry.data.get(CONF_USERNAME, ""),
             },
         )
 
     def _map_exception_to_error(self, exception: Exception) -> str:
         """
         Map API exceptions to user-facing error keys.
+
+        Expected failures (bad credentials, network problems) are logged as a
+        one-line warning. Anything else is logged with its traceback so that
+        unexpected API responses can be diagnosed from the Home Assistant log.
 
         Args:
             exception: The exception that was raised.
@@ -241,9 +245,12 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             The error key for display in the config flow form.
 
         """
-        LOGGER.warning("Error in config flow: %s", exception)
-        exception_name = type(exception).__name__
-        return ERROR_MAP.get(exception_name, "unknown")
+        error = ERROR_MAP.get(type(exception).__name__, "unknown")
+        if error == "unknown":
+            LOGGER.error("Unexpected error while validating credentials", exc_info=exception)
+        else:
+            LOGGER.warning("Could not validate credentials: %s", exception)
+        return error
 
 
 __all__ = ["AirCloudHomeConfigFlowHandler"]
