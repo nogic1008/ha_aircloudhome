@@ -4,8 +4,7 @@ This guide will help you install and set up the Shirokuma AC (aircloudhome) Inte
 
 ## Prerequisites
 
-- Home Assistant 2025.7.0 or newer
-- HACS (Home Assistant Community Store) installed
+- Home Assistant 2025.12.3 or newer
 - AirCloud Home account (email and password)
 
 ### Initial Setup with the Mobile App
@@ -24,18 +23,24 @@ Without completing these steps in the app, the Home Assistant integration will n
 
 ## Installation
 
-### Via HACS (Recommended)
+### Via the Marketplace (Home Assistant 2026.11 and newer, recommended)
+
+1. Go to **Settings** → **Marketplace**
+2. Add this repository as a custom repository: `https://github.com/nogic1008/ha_aircloudhome`, category "Integration". The Marketplace asks you to connect a GitHub account for repositories outside its catalog.
+3. Open "Shirokuma AC (aircloudhome) Integration" and click "Download"
+
+A restart is not needed for the first installation; updates and removal ask for one.
+
+### Via HACS (before Home Assistant 2026.11)
 
 1. Open HACS in your Home Assistant instance
-2. Go to "Integrations"
-3. Click the three dots in the top right corner
-4. Select "Custom repositories"
-5. Add this repository URL: `https://github.com/nogic1008/ha_aircloudhome`
-6. Set category to "Integration"
-7. Click "Add"
-8. Find "Shirokuma AC (aircloudhome) Integration" in the integration list
-9. Click "Download"
-10. Restart Home Assistant
+2. Click the three dots in the top right corner
+3. Select "Custom repositories"
+4. Add this repository URL: `https://github.com/nogic1008/ha_aircloudhome`
+5. Set category to "Integration"
+6. Click "Add"
+7. Find "Shirokuma AC (aircloudhome) Integration" in the list and click "Download"
+8. Restart Home Assistant
 
 ### Manual Installation
 
