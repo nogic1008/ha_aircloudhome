@@ -9,7 +9,7 @@
           "password": "パスワード"
         },
         "data_description": {
-          "region": "アカウントを作成したアプリのクラウドを選択してください。白くまくんアプリの場合は「日本」、airCloud Go アプリ（旧 airCloud Home）の場合は「ヨーロッパ / グローバル」を選択します。"
+          "region": "アカウントを作成した地域（アプリ）を選択してください。白くまくんアプリの場合は「日本」、airCloud Go アプリ（旧 airCloud Home）の場合は「ヨーロッパ / グローバル」を選択します。"
         }
       },
       "reconfigure": {
@@ -20,7 +20,7 @@
           "password": "パスワード"
         },
         "data_description": {
-          "region": "アカウントを作成したアプリのクラウドを選択してください。白くまくんアプリの場合は「日本」、airCloud Go アプリ（旧 airCloud Home）の場合は「ヨーロッパ / グローバル」を選択します。"
+          "region": "アカウントを作成した地域（アプリ）を選択してください。白くまくんアプリの場合は「日本」、airCloud Go アプリ（旧 airCloud Home）の場合は「ヨーロッパ / グローバル」を選択します。"
         }
       },
       "reauth_confirm": {
