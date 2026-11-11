@@ -21,8 +21,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.loader import async_get_loaded_integration
 
-from .api import AirCloudHomeApiClient
-from .const import CONF_UPDATE_INTERVAL_MINUTES, DEFAULT_UPDATE_INTERVAL_MINUTES, DOMAIN, LOGGER
+from .api import AirCloudHomeApiClient, AirCloudHomeRegion
+from .const import CONF_REGION, CONF_UPDATE_INTERVAL_MINUTES, DEFAULT_UPDATE_INTERVAL_MINUTES, DOMAIN, LOGGER
 from .coordinator import AirCloudHomeDataUpdateCoordinator
 from .data import AirCloudHomeData
 
@@ -89,6 +89,8 @@ async def async_setup_entry(
         email=entry.data[CONF_USERNAME],  # From config flow setup
         password=entry.data[CONF_PASSWORD],  # From config flow setup
         session=async_get_clientsession(hass),
+        # Entries created before region support only ever used the Japan API.
+        region=entry.data.get(CONF_REGION, AirCloudHomeRegion.JAPAN),
     )
 
     # Get update interval from options, fallback to default (5 minutes)

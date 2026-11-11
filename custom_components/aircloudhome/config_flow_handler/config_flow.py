@@ -16,13 +16,14 @@ from typing import TYPE_CHECKING, Any
 
 from slugify import slugify
 
+from custom_components.aircloudhome.api import AirCloudHomeRegion
 from custom_components.aircloudhome.config_flow_handler.schemas import (
     get_reauth_schema,
     get_reconfigure_schema,
     get_user_schema,
 )
 from custom_components.aircloudhome.config_flow_handler.validators import validate_credentials
-from custom_components.aircloudhome.const import DOMAIN, LOGGER
+from custom_components.aircloudhome.const import CONF_REGION, DOMAIN, LOGGER
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
@@ -96,6 +97,7 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self.hass,
                     email=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
+                    region=user_input[CONF_REGION],
                 )
             except Exception as exception:  # noqa: BLE001
                 errors["base"] = self._map_exception_to_error(exception)
@@ -127,8 +129,8 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """
         Handle reconfiguration of the integration.
 
-        Allows users to update their credentials without removing and re-adding
-        the integration.
+        Allows users to update their credentials and cloud region without
+        removing and re-adding the integration.
 
         Args:
             user_input: The user input from the reconfigure form, or None for initial display.
@@ -146,6 +148,7 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self.hass,
                     email=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
+                    region=user_input[CONF_REGION],
                 )
             except Exception as exception:  # noqa: BLE001
                 errors["base"] = self._map_exception_to_error(exception)
@@ -157,7 +160,10 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reconfigure",
-            data_schema=get_reconfigure_schema(entry.data.get(CONF_USERNAME, "")),
+            data_schema=get_reconfigure_schema(
+                entry.data.get(CONF_USERNAME, ""),
+                entry.data.get(CONF_REGION, AirCloudHomeRegion.JAPAN.value),
+            ),
             errors=errors,
         )
 
@@ -205,6 +211,7 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self.hass,
                     email=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
+                    region=entry.data.get(CONF_REGION, AirCloudHomeRegion.JAPAN),
                 )
             except Exception as exception:  # noqa: BLE001
                 errors["base"] = self._map_exception_to_error(exception)

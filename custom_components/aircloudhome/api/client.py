@@ -12,7 +12,9 @@ from __future__ import annotations
 
 import asyncio
 from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 import logging
+import re
 import socket
 from typing import Any
 
@@ -23,6 +25,42 @@ _LOGGER = logging.getLogger(__name__)
 # Refresh tokens this many seconds before their stated expiry to account for
 # clock skew and network latency.
 _EXPIRY_BUFFER = timedelta(seconds=60)
+
+# Headers sent by the official mobile apps. The Europe / global API answers
+# idu-list with 403 "Access Denied" without them; the Japan API accepts them.
+_DEFAULT_HEADERS = {
+    "Accept": "application/json",
+    "Content-Type": "application/json; charset=UTF-8",
+    "User-Agent": "okhttp/4.2.2",
+}
+
+# Supported target humidity range. Other values mean the unit has no humidity
+# control (the Europe / global API reports 2147483647), so the key is dropped.
+_HUMIDITY_RANGE = range(40, 61)
+
+# Masked serial numbers such as "XXXX-XXXX-XXXX" (Europe / global API).
+_PLACEHOLDER_SERIAL_PATTERN = re.compile(r"^[Xx]+(?:[-\s][Xx]+)*$")
+
+
+class AirCloudHomeRegion(StrEnum):
+    """
+    AirCloud Home cloud region.
+
+    Accounts are bound to the region of the mobile app they were created with
+    and cannot sign in to the other region's API.
+    """
+
+    JAPAN = "japan"
+    """Shirokuma-kun app (白くまくんアプリ), Japan."""
+
+    GLOBAL = "global"
+    """airCloud Go / AirCloud Home app, Europe and the rest of the world."""
+
+
+API_BASE_URLS: dict[AirCloudHomeRegion, str] = {
+    AirCloudHomeRegion.JAPAN: "https://api-kuma.aircloudhome.com",
+    AirCloudHomeRegion.GLOBAL: "https://api-global-prod.aircloudhome.com",
+}
 
 
 class AirCloudHomeApiClientError(Exception):
@@ -102,6 +140,7 @@ class AirCloudHomeApiClient:
     https://developers.home-assistant.io/docs/api_lib_index
 
     Attributes:
+        _base_url: The API base URL of the account's region.
         _email: The email for API authentication.
         _password: The password for API authentication.
         _session: The aiohttp ClientSession for making requests.
@@ -114,13 +153,12 @@ class AirCloudHomeApiClient:
 
     """
 
-    _BASE_URL = "https://api-kuma.aircloudhome.com"
-
     def __init__(
         self,
         email: str,
         password: str,
         session: aiohttp.ClientSession,
+        region: AirCloudHomeRegion | str = AirCloudHomeRegion.JAPAN,
     ) -> None:
         """
         Initialize the API Client with credentials.
@@ -129,8 +167,14 @@ class AirCloudHomeApiClient:
             email: The email for authentication from config flow.
             password: The password for authentication from config flow.
             session: The aiohttp ClientSession to use for requests.
+            region: The cloud region the account belongs to. Defaults to Japan,
+                the only region supported by earlier versions.
+
+        Raises:
+            ValueError: If ``region`` is not a known region.
 
         """
+        self._base_url = API_BASE_URLS[AirCloudHomeRegion(region)]
         self._email = email
         self._password = password
         self._session = session
@@ -159,7 +203,7 @@ class AirCloudHomeApiClient:
         }
         response = await self._api_wrapper(
             method="post",
-            url=f"{self._BASE_URL}/iam/auth/sign-in",
+            url=f"{self._base_url}/iam/auth/sign-in",
             data=data,
             # A 401 here means wrong credentials. Never treat it as an expired
             # token: refreshing would sign in again while holding
@@ -192,7 +236,7 @@ class AirCloudHomeApiClient:
 
         response = await self._api_wrapper(
             method="post",
-            url=f"{self._BASE_URL}/iam/auth/refresh-token",
+            url=f"{self._base_url}/iam/auth/refresh-token",
             headers={
                 "Authorization": f"Bearer {self._refresh_token}",
                 "isRefreshToken": "true",
@@ -219,7 +263,7 @@ class AirCloudHomeApiClient:
 
         response = await self._api_wrapper(
             method="get",
-            url=f"{self._BASE_URL}/iam/family-account/v2/groups",
+            url=f"{self._base_url}/iam/family-account/v2/groups",
             headers={"Authorization": f"Bearer {self._access_token}"},
         )
         return response.get("result", [])
@@ -232,7 +276,8 @@ class AirCloudHomeApiClient:
             family_id: The family group ID.
 
         Returns:
-            A list of indoor units with their current state.
+            A list of indoor units with their current state, normalized by
+            ``normalize_device_list``.
 
         Raises:
             AirCloudHomeApiClientAuthenticationError: If authentication fails.
@@ -244,10 +289,10 @@ class AirCloudHomeApiClient:
 
         response = await self._api_wrapper(
             method="get",
-            url=f"{self._BASE_URL}/rac/ownership/groups/{family_id}/idu-list",
+            url=f"{self._base_url}/rac/ownership/groups/{family_id}/idu-list",
             headers={"Authorization": f"Bearer {self._access_token}"},
         )
-        return response if isinstance(response, list) else []
+        return normalize_device_list(response)
 
     async def async_control_device(
         self,
@@ -300,7 +345,7 @@ class AirCloudHomeApiClient:
 
         return await self._api_wrapper(
             method="put",
-            url=f"{self._BASE_URL}/rac/basic-idu-control/general-control-command/{rac_id}?familyId={family_id}",
+            url=f"{self._base_url}/rac/basic-idu-control/general-control-command/{rac_id}?familyId={family_id}",
             data=data,
             headers={"Authorization": f"Bearer {self._access_token}"},
         )
@@ -345,7 +390,7 @@ class AirCloudHomeApiClient:
                 response = await self._session.request(
                     method=method,
                     url=url,
-                    headers=headers,
+                    headers={**_DEFAULT_HEADERS, **(headers or {})},
                     json=data,
                 )
                 needs_refresh = response.status == 401 and not _is_retry
@@ -487,3 +532,45 @@ class AirCloudHomeApiClient:
                 await self.async_refresh_token()
             else:
                 await self.async_sign_in()
+
+
+def normalize_device_list(response: Any) -> list[dict[str, Any]]:
+    """
+    Normalize an ``idu-list`` response into a list of device payloads.
+
+    The Europe / global API fills fields the Japan API leaves out with
+    placeholders. They are removed here so entities can rely on one format:
+
+    - ``humidity`` is kept only when it is a valid target (40-60 %); otherwise
+      the unit is treated as having no humidity control.
+    - Masked serial numbers (``XXXX-XXXX-XXXX``) are removed.
+
+    Args:
+        response: The decoded JSON response (a list of device objects).
+
+    Returns:
+        A list of normalized device dictionaries (copies of the input).
+
+    """
+    if not isinstance(response, list):
+        return []
+    return [_normalize_device(item) for item in response if isinstance(item, dict)]
+
+
+def _normalize_device(item: dict[str, Any]) -> dict[str, Any]:
+    """Normalize a single device payload. See ``normalize_device_list``."""
+    device = dict(item)
+
+    humidity = device.pop("humidity", None)
+    if isinstance(humidity, (int, float)) and not isinstance(humidity, bool) and int(humidity) in _HUMIDITY_RANGE:
+        device["humidity"] = int(humidity)
+
+    serial_number = device.pop("serialNumber", None)
+    if (
+        isinstance(serial_number, str)
+        and (serial_number := serial_number.strip())
+        and not _PLACEHOLDER_SERIAL_PATTERN.fullmatch(serial_number)
+    ):
+        device["serialNumber"] = serial_number
+
+    return device

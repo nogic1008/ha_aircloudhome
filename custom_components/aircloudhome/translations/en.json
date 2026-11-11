@@ -4,15 +4,23 @@
       "user": {
         "description": "If you need help with the configuration have a look at the [documentation]({documentation_url}).",
         "data": {
+          "region": "Region",
           "username": "Email",
           "password": "Password"
+        },
+        "data_description": {
+          "region": "Cloud of the app your account was created with. Choose Japan for the Shirokuma-kun app (白くまくんアプリ) and Europe / global for the airCloud Go app (formerly airCloud Home)."
         }
       },
       "reconfigure": {
         "description": "Update the credentials for this integration.",
         "data": {
+          "region": "Region",
           "username": "Email",
           "password": "Password"
+        },
+        "data_description": {
+          "region": "Cloud of the app your account was created with. Choose Japan for the Shirokuma-kun app (白くまくんアプリ) and Europe / global for the airCloud Go app (formerly airCloud Home)."
         }
       },
       "reauth_confirm": {
@@ -77,6 +85,14 @@
             }
           }
         }
+      }
+    }
+  },
+  "selector": {
+    "region": {
+      "options": {
+        "japan": "Japan (Shirokuma-kun app)",
+        "global": "Europe / global (airCloud Go app)"
       }
     }
   }

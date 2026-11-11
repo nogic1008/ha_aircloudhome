@@ -8,14 +8,19 @@ This guide will help you install and set up the Shirokuma AC (aircloudhome) Inte
 - HACS (Home Assistant Community Store) installed
 - AirCloud Home account (email and password)
 
-### Initial Setup with Shirokuma-kun App
+### Initial Setup with the Mobile App
 
-Before using this integration, you must perform initial setup using the **[Shirokuma-kun App (白くまくんアプリ)](https://kadenfan.hitachi.co.jp/ra/app2/)**:
+Before using this integration, you must perform initial setup using the official Hitachi app for your region:
 
-1. **User Registration:** Sign up for an AirCloud Home account using the Shirokuma-kun App
+- **Japan:** **[Shirokuma-kun App (白くまくんアプリ)](https://kadenfan.hitachi.co.jp/ra/app2/)**
+- **Europe and other countries:** **[airCloud Go app](https://aircloudhome.hitachiaircon.com)** (formerly airCloud Home)
+
+Then:
+
+1. **User Registration:** Sign up for an AirCloud Home account using the app
 2. **Device Registration:** Register your AC unit in the app
 
-Without completing these steps in the Shirokuma-kun App, the Home Assistant integration will not be able to connect to your devices.
+Without completing these steps in the app, the Home Assistant integration will not be able to connect to your devices.
 
 ## Installation
 

@@ -20,17 +20,21 @@ Coordinator exception mapping:
 """
 
 from .client import (
+    API_BASE_URLS,
     AirCloudHomeApiClient,
     AirCloudHomeApiClientAccountLockedError,
     AirCloudHomeApiClientAuthenticationError,
     AirCloudHomeApiClientCommunicationError,
     AirCloudHomeApiClientError,
+    AirCloudHomeRegion,
 )
 
 __all__ = [
+    "API_BASE_URLS",
     "AirCloudHomeApiClient",
     "AirCloudHomeApiClientAccountLockedError",
     "AirCloudHomeApiClientAuthenticationError",
     "AirCloudHomeApiClientCommunicationError",
     "AirCloudHomeApiClientError",
+    "AirCloudHomeRegion",
 ]
