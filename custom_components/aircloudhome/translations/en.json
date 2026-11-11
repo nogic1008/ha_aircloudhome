@@ -27,8 +27,12 @@
         "title": "Reauthenticate Integration",
         "description": "The credentials for {email} are no longer valid. Please provide updated credentials to restore access.",
         "data": {
+          "region": "Region",
           "username": "Email",
           "password": "Password"
+        },
+        "data_description": {
+          "region": "Cloud of the app your account was created with. Choose Japan for the Shirokuma-kun app (白くまくんアプリ) and Europe / global for the airCloud Go app (formerly airCloud Home). A wrong region also causes authentication errors."
         }
       }
     },

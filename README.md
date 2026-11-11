@@ -168,7 +168,7 @@ If your credentials expire or change, Home Assistant will automatically prompt y
 1. Go to **Settings** → **Devices & Services**
 2. Look for **"Action Required"** or **"Configuration Required"** message on the integration
 3. Click **"Reconfigure"** or follow the prompt
-4. Enter your updated email and password
+4. Enter your updated email and password, and check the **Region**: an account used with the wrong region also fails with an authentication error
 5. Click Submit
 
 The integration will automatically resume normal operation with the new credentials.

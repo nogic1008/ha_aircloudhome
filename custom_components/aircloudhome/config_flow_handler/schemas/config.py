@@ -102,12 +102,16 @@ def get_reconfigure_schema(email: str, region: str) -> vol.Schema:
     )
 
 
-def get_reauth_schema(email: str) -> vol.Schema:
+def get_reauth_schema(email: str, region: str) -> vol.Schema:
     """
     Get schema for reauthentication step.
 
+    The region is part of the form because a wrong region also fails with an
+    authentication error: the other cloud does not know the account.
+
     Args:
         email: Current email to pre-fill in the form.
+        region: Current cloud region to preselect in the form.
 
     Returns:
         Voluptuous schema for reauthentication.
@@ -115,6 +119,7 @@ def get_reauth_schema(email: str) -> vol.Schema:
     """
     return vol.Schema(
         {
+            vol.Required(CONF_REGION, default=region): REGION_SELECTOR,
             vol.Required(
                 CONF_USERNAME,
                 default=email,

@@ -116,7 +116,7 @@ Each decision is documented with:
 
 **Context:** AirCloud Home has a Japan cloud (`api-kuma`, Shirokuma-kun app) and a Europe / global cloud (`api-global-prod`, airCloud Go app). Accounts exist in only one of them. The two APIs share the same endpoints but differ in required headers and some payload fields.
 
-**Decision:** Store the region in the config entry (`region`, chosen in the setup and reconfigure forms) and pass it to the API client, which picks the base URL. Absorb payload differences in the API layer (`normalize_device_list`) so the coordinator and entities stay region-agnostic.
+**Decision:** Store the region in the config entry (`region`, chosen in the setup, reconfigure and reauthentication forms) and pass it to the API client, which picks the base URL. Absorb payload differences in the API layer (`normalize_device_list`) so the coordinator and entities stay region-agnostic.
 
 **Rationale:**
 

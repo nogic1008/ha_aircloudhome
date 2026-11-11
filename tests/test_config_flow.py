@@ -100,3 +100,39 @@ async def test_reauth_of_legacy_entry_uses_japan(hass: HomeAssistant, validate_c
     )
 
     assert validate_credentials.await_args.kwargs["region"] == "japan"
+
+
+async def test_reauth_form_preselects_stored_region(hass: HomeAssistant, validate_credentials: AsyncMock) -> None:
+    """The reauth form shows the region field, preset to the entry's region."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="user-example-com",
+        data={CONF_REGION: "global", CONF_USERNAME: "user@example.com", CONF_PASSWORD: "old"},
+    )
+    entry.add_to_hass(hass)
+
+    result = await entry.start_reauth_flow(hass)
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["data_schema"]({CONF_USERNAME: "user@example.com", CONF_PASSWORD: "x"})[CONF_REGION] == "global"
+
+
+async def test_reauth_can_fix_region_of_legacy_entry(hass: HomeAssistant, validate_credentials: AsyncMock) -> None:
+    """A legacy entry (no stored region) of a global account can be repaired from the reauth form."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        unique_id="user-example-com",
+        data={CONF_USERNAME: "user@example.com", CONF_PASSWORD: "secret"},
+    )
+    entry.add_to_hass(hass)
+
+    result = await entry.start_reauth_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {CONF_REGION: "global", CONF_USERNAME: "user@example.com", CONF_PASSWORD: "secret"},
+    )
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reauth_successful"
+    assert validate_credentials.await_args.kwargs["region"] == "global"
+    assert entry.data[CONF_REGION] == "global"
