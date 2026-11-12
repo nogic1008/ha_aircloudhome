@@ -28,7 +28,7 @@ Uncomment and customize these badges if you want to use them:
 - **Multiple Units**: Supports multiple AC units across multiple family groups
 - **Japan and Europe / Global Accounts**: Works with both the Shirokuma-kun (Japan) and airCloud Go (Europe / global) clouds
 
-> **🛠️ Tested hardware:** Hitachi RAS-X40L2. Other **room air conditioners (RAC)** connected via AirCloud Home should work. Packaged air conditioners (PAC) use a separate API and are not supported.
+> **🛠️ Tested hardware:** Hitachi RAS-X40L2 (Japan); Hitachi RAK-VJ35RHAE indoor unit with RAM-G55N2HAE outdoor unit (Europe / global). Other **room air conditioners (RAC)** connected via AirCloud Home should work. Packaged air conditioners (PAC) use a separate API and are not supported.
 
 **This integration will set up the following platforms.**
 
