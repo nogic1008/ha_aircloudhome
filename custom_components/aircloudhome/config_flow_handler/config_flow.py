@@ -193,7 +193,8 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         """
         Handle reauthentication confirmation.
 
-        Shows the reauthentication form and processes updated credentials.
+        Shows the reauthentication form and processes updated credentials and
+        region. A wrong region also fails sign-in, so the user can fix it here.
 
         Args:
             user_input: The user input with updated credentials, or None for initial display.
@@ -211,7 +212,7 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     self.hass,
                     email=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
-                    region=entry.data.get(CONF_REGION, AirCloudHomeRegion.JAPAN),
+                    region=user_input[CONF_REGION],
                 )
             except Exception as exception:  # noqa: BLE001
                 errors["base"] = self._map_exception_to_error(exception)
@@ -223,7 +224,10 @@ class AirCloudHomeConfigFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reauth_confirm",
-            data_schema=get_reauth_schema(entry.data.get(CONF_USERNAME, "")),
+            data_schema=get_reauth_schema(
+                entry.data.get(CONF_USERNAME, ""),
+                entry.data.get(CONF_REGION, AirCloudHomeRegion.JAPAN.value),
+            ),
             errors=errors,
             description_placeholders={
                 "email": entry.data.get(CONF_USERNAME, ""),
