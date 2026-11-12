@@ -10,5 +10,5 @@
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/nogic1008/ha_aircloudhome/issues",
-  "version": "0.2.0"
+  "version": "0.2.1"
 }
