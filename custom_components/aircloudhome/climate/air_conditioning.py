@@ -19,6 +19,7 @@ from custom_components.aircloudhome.entity_utils.climate_mappings import (
 from homeassistant.components.climate import ClimateEntity
 from homeassistant.components.climate.const import PRESET_NONE, ClimateEntityFeature, HVACMode
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
+from homeassistant.core import callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 
@@ -82,10 +83,19 @@ class AirCloudHomeAirConditioner(ClimateEntity, AirCloudHomeEntity):
             hw_version=self._device.get("vendorThingId"),
         )
 
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Follow this unit's latest payload; a unit missing from it is offline."""
+        self._device = next(
+            (device for device in self.coordinator.data.get("devices", []) if device["id"] == self._device["id"]),
+            {**self._device, "online": False},
+        )
+        super()._handle_coordinator_update()
+
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return self._device.get("online", False)
+        return super().available and self._device.get("online", False)
 
     @property
     def current_temperature(self) -> float | None:
